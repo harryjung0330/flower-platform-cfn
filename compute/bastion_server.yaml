@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: template for creating bastion server
+
+Metadata:
+  Product: flower-platform
+
+Parameters:
+  SubnetId:
+    Description: subnet id for bastion server
+    Type: String
+  
+  VpcId:
+    Description: VPC id for security-group
+    Type: String
+  
+  KeypairName:
+    Description: Key pair name for bastion server
+    Type: String
+  
+  ImageId:
+    Description: image id for bastion server
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/amzn2-ami-hvm-x86_64-gp2
+  
+  InstanceType:
+    Description: instance type for ec2
+    Type: String
+    Default: t2.micro
+  
+  InstanceRole:
+    Description: instance role for bastion server to assume
+    Type: String
+    Default: ''
+  
+  
+Conditions:
+  CreateInstanceRole: !Equals [ !Ref InstanceRole, '' ]
+
+Resources: 
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref ImageId
+      InstanceType: !Ref InstanceType
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeType: gp2
+            VolumeSize: '21'
+            DeleteOnTermination: 'false'
+            Encrypted: 'true'
+      NetworkInterfaces:
+        - !Ref NetworkInterf
+      SecurityGroupIds:
+        - !Ref SecGroup
+      KeyName: !Ref KeypairName
+      SubnetId: !Ref SubnetId
+  
+  NetworkInterf:
+    Type: AWS::EC2::NetworkInterface
+    Properties:
+      AssociatePublicIpAddress: 'true'
+      DeleteOnTermination: 'true'
+      Description: network interface for bastion server
+      DeviceIndex: '0'
+      SubnetId: !Ref SubnetId
+
+  SecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security group for bastion server
+      SecurityGroupIngress: 
+        - CidrIp: 0.0.0.0/0
+          FromPort: 22
+          IpProtocol: tcp
+          ToPort: 22
+      VpcId: !Ref VpcId
+  
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      Roles: 
+        - !If [CreateInstanceRole, !Ref Ec2InstanceRole, !Ref InstanceRole]
+
+
+  
+  Ec2InstanceRole:
+    Type: AWS::IAM::Role
+    Condition: CreateInstanceRole
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - 
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+
+Outputs:
+  SecurityGroupId:
+    Description: Security group id
+    Value: !GetAtt SecGroup.GroupId
+  
+  EC2InstanceId:
+    Description: id for bastion server
+    Value: !Ref EC2Instance
+    

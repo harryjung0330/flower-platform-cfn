@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: network for test environment
+Description: create public subnet
 
 Metadata:
   Product: flower-platform
@@ -28,6 +28,7 @@ Resources:
     Type: "AWS::EC2::Subnet"
     Properties:
       AvailabilityZone: !Ref AZ
+      MapPublicIpOnLaunch: true
       CidrBlock : !Ref CidrBlock
       VpcId: !Ref VpcId
     

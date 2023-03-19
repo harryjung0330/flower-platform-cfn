@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: network for test environment
+Description: template for creating private subnet
 
 Metadata:
   Product: flower-platform

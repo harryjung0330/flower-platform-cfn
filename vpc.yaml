@@ -9,8 +9,7 @@ Parameters:
   BucketUrl:
     Description: it is a bucket template Url.
     Type: String
-    Default: "https://cloudformation-code-repo-flower-platform.ap-northeast-2.amazonaws.com/"
-
+    Default: "https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/"
 
 Resources: 
   VPC:

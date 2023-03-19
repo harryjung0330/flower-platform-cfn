@@ -1,0 +1,1 @@
+aws cloudformation create-stack --stack-name <stack-name> --template-body file://<file-path> --parameters ParameterKey=<param-key>,ParameterValue=<param-value> --capabilities CAPABILITY_NAMED_IAM
