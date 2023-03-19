@@ -1,0 +1,49 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: network for test environment
+
+Metadata:
+  Product: flower-platform
+
+Parameters:
+  VpcId:
+    Description: VPC id for the public subnet
+    Type: String
+  
+  AZ:
+    Description: specify az for the public subnet
+    Type: String
+
+  CidrBlock:
+    Description: CidrBlock for public subnet
+    Type: String
+
+Resources: 
+  #---------- private subnet for vpc endpoint ------------
+  PrivateSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !Ref AZ
+      CidrBlock: !Ref CidrBlock
+      VpcId: !Ref VpcId
+  
+  RouteTableForPrivateSubnet:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !Ref VpcId
+  
+  AssociationEndpointSubnetRouteTable:        # route table을 EndpointSubnet에 지정
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref PrivateSubnet
+      RouteTableId: !Ref RouteTableForPrivateSubnet
+
+Outputs:
+  SubnetId:
+    Description: SubnetId for private subnet
+    Value: !Ref PrivateSubnet
+  
+  RouteTableId:
+    Description: Route table id
+    Value: !Ref RouteTableForPrivateSubnet
+    

@@ -1,5 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Create VPC for flower platform
+Parameters:
+  AZ:
+    Description: AZ to use
+    Type: String
+    Default: ap-northeast-2a
+
+  BucketUrl:
+    Description: it is a bucket template Url.
+    Type: String
+    Default: "https://hello-world-yolo-harryjung-1.s3.ap-northeast-2.amazonaws.com/"
+
 
 Resources: 
   VPC:
@@ -9,13 +20,18 @@ Resources:
       EnableDnsHostnames: true
       Tags:
       - Key: Stage
-        Value: 'all'
+        Value: test
       - Key: Description
-        Value: it is a VPC for all stages
+        Value: it is a VPC for test stage
   
   InternetGateway:
     Type: 'AWS::EC2::InternetGateway'
-    Properties: {}
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      - Key: Description
+        Value: it is a route table for test stage
     DependsOn: VPC
 
   VPCGatewayAttachment:
@@ -24,15 +40,15 @@ Resources:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
-Outputs:
-  VpcId:
-    Description: VPC id for flower platform
-    Value: !Ref VPC
-    Export: 
-      Name: VpcId
-  
-  InternetGateway:
-    Description: Internet gateway id
-    Value: !GetAtt InternetGateway.InternetGatewayId
-    Export:
-      Name: InternetGatewayId
+  PublicSubnet:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'public_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        IgId: !GetAtt InternetGateway.InternetGatewayId
+        AZ: !Ref AZ
+        CidrBlock: 10.0.0.0/24
