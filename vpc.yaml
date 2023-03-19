@@ -52,3 +52,27 @@ Resources:
         IgId: !GetAtt InternetGateway.InternetGatewayId
         AZ: !Ref AZ
         CidrBlock: 10.0.0.0/24
+
+  WebServerSubnet:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        AZ: !Ref AZ
+        CidrBlock: 10.0.1.0/24
+  
+  DatabaseSubnet:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        AZ: !Ref AZ
+        CidrBlock: 10.0.2.0/24
