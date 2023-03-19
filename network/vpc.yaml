@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Create VPC for flower platform
+
+Resources: 
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Stage
+        Value: 'all'
+      - Key: Description
+        Value: it is a VPC for all stages
+  
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties: {}
+    DependsOn: VPC
+
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+Outputs:
+  VpcId:
+    Description: VPC id for flower platform
+    Value: !Ref VPC
+    Export: 
+      Name: VpcId
+  
+  InternetGateway:
+    Description: Internet gateway id
+    Value: !GetAtt InternetGateway.InternetGatewayId
+    Export:
+      Name: InternetGatewayId

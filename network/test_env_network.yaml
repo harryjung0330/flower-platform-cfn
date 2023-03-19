@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: network for test environment
+Metadata:
+  Product: flower-platform
+
+Mappings:
+  ConfigMap:
+    test:
+      AZforPubSub: ap-northeast-2a
+      AZforWebServ: ap-northeast-2a
+      AZforDB: ap-northeast-2a
+      InstanceType: t2.micro
+
+Resources: 
+  #------ public subnet ----------------------
+  PublicSubnetForTestEnv:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !FindInMap [ConfigMap, test, AZforPubSub]
+      CidrBlock : '10.0.0.0/24'
+      VpcId: !ImportValue VpcId
+      Tags:
+      - Key: Stage
+        Value: "test"
+      - Key: Description
+        Value: it is a subnet for test stage
+  
+  RouteTablePublicSubnet:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !ImportValue VpcId
+      Tags:
+      - Key: Stage
+        Value: "test"
+      - Key: Description
+        Value: it is a route table for public subnet
+  
+  RoutePublicSubnetToInternet:
+    Type: "AWS::EC2::Route"
+    Properties:
+      RouteTableId: !Ref RouteTablePublicSubnet
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !ImportValue InternetGatewayId
+  
+  AssociationRouteTablePublicSubnet:
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties: 
+      SubnetId: !Ref PublicSubnetForTestEnv
+      RouteTableId: !Ref RouteTablePublicSubnet
+
+
+  #---------- private subnet for vpc endpoint ------------
+  WebServerSubnet:
+    Type: "AWS::EC2::Subnet"
+    Properties:
+      AvailabilityZone: !FindInMap [ConfigMap, test, AZforWebServ]
+      CidrBlock: '10.0.1.0/24'
+      VpcId: !ImportValue VpcId
+      Tags:
+      - Key: Stage
+        Value: "test"
+      - Key: Description
+        Value: it is a subnet for web server
+  
+  RouteTableEndpointSubnet:
+    Type: "AWS::EC2::RouteTable"
+    Properties:
+      VpcId: !ImportValue VpcId
+      Tags:
+      - Key: Stage
+        Value: "test"
+      - Key: Description
+        Value: it is a route table for webserver subnet
+  
+  AssociationEndpointSubnetRouteTable:        # route table을 EndpointSubnet에 지정
+    Type: "AWS::EC2::SubnetRouteTableAssociation"
+    Properties:
+      SubnetId: !Ref WebServerSubnet
+      RouteTableId: !Ref RouteTableEndpointSubnet
+
