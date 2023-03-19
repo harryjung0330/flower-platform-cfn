@@ -10,6 +10,11 @@ Parameters:
     Description: it is a bucket template Url.
     Type: String
     Default: "https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/"
+  
+  BastionKeyPairName:
+    Description: key pair name for bastion server
+    Type: String
+    Default: bastion-server-key-pair
 
 Resources: 
   VPC:
@@ -75,3 +80,17 @@ Resources:
         VpcId: !Ref VPC
         AZ: !Ref AZ
         CidrBlock: 10.0.2.0/24
+
+  #---------------------------------- compute resource-----------------------------
+
+  BastionServer:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'compute/bastion_server.yaml']]
+      Parameters:
+        SubnetId: !Ref PublicSubnet
+        VpcId: !Ref VPC
+        KeypairName: !Ref BastionKeyPairName

@@ -47,24 +47,17 @@ Resources:
         - DeviceName: /dev/xvda
           Ebs:
             VolumeType: gp2
-            VolumeSize: '21'
-            DeleteOnTermination: 'false'
-            Encrypted: 'true'
+            VolumeSize: 21
+            DeleteOnTermination: false
+            Encrypted: true
       NetworkInterfaces:
-        - !Ref NetworkInterf
-      SecurityGroupIds:
-        - !Ref SecGroup
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          DeviceIndex: '0'
+          SubnetId: !Ref SubnetId
+          GroupSet:
+            - !Ref SecGroup
       KeyName: !Ref KeypairName
-      SubnetId: !Ref SubnetId
-  
-  NetworkInterf:
-    Type: AWS::EC2::NetworkInterface
-    Properties:
-      AssociatePublicIpAddress: 'true'
-      DeleteOnTermination: 'true'
-      Description: network interface for bastion server
-      DeviceIndex: '0'
-      SubnetId: !Ref SubnetId
 
   SecGroup:
     Type: AWS::EC2::SecurityGroup
@@ -83,8 +76,6 @@ Resources:
       Roles: 
         - !If [CreateInstanceRole, !Ref Ec2InstanceRole, !Ref InstanceRole]
 
-
-  
   Ec2InstanceRole:
     Type: AWS::IAM::Role
     Condition: CreateInstanceRole
