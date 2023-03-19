@@ -9,7 +9,7 @@ Parameters:
   BucketUrl:
     Description: it is a bucket template Url.
     Type: String
-    Default: "https://hello-world-yolo-harryjung-1.s3.ap-northeast-2.amazonaws.com/"
+    Default: "https://cloudformation-code-repo-flower-platform.ap-northeast-2.amazonaws.com/"
 
 
 Resources: 
@@ -46,7 +46,7 @@ Resources:
       Tags:
       - Key: Stage
         Value: test
-      TemplateURL: !Join ['', [!Ref BucketUrl, 'public_subnet.yaml']]
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/public_subnet.yaml']]
       Parameters:
         VpcId: !Ref VPC
         IgId: !GetAtt InternetGateway.InternetGatewayId
