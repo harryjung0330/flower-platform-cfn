@@ -104,7 +104,7 @@ Resources:
   LoadBalancerSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: Security group for bastion server
+      GroupDescription: Security group for load balancer
       SecurityGroupIngress: 
         - CidrIp: 0.0.0.0/0
           FromPort: 80
@@ -115,7 +115,7 @@ Resources:
   WebServerSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties: 
-      GroupDescription: Security group for bastion server
+      GroupDescription: Security group for web servers
       SecurityGroupIngress: 
         - SourceSecurityGroupId: !Ref BastionServerSecurityGroup
           FromPort: 22
