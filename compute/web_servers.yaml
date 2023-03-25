@@ -19,7 +19,7 @@ Parameters:
   AmiId:
     Type: String
     Description: AMI for web servers
-    
+
   #optional parameters
   HealthCheckPath:
     Type: String
@@ -45,6 +45,7 @@ Parameters:
  
 Resources:
   LoadBalancer:
+    UpdateReplacePolicy: Retain
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Subnets: !Ref LoadBalancerSubnets
@@ -80,9 +81,9 @@ Resources:
       Priority: 1
   
   TargetGroup:
+    UpdateReplacePolicy: Retain
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
-      Name: WebServerTargetGroup
       Port: 80
       Protocol: HTTP
       VpcId: !Ref VPC
@@ -118,6 +119,7 @@ Resources:
       VpcId: !Ref VPC
 
   WebServerSecGroup:
+    UpdateReplacePolicy: Retain
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: Security group for web servers
@@ -133,6 +135,7 @@ Resources:
       VpcId: !Ref VPC
 
   ASG:
+    UpdateReplacePolicy: Retain
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchTemplate:

@@ -40,6 +40,7 @@ Conditions:
 Resources: 
   EC2Instance:
     Type: AWS::EC2::Instance
+    UpdateReplacePolicy: Retain
     Properties:
       ImageId: !Ref ImageId
       InstanceType: !Ref InstanceType
@@ -61,6 +62,7 @@ Resources:
 
   SecGroup:
     Type: AWS::EC2::SecurityGroup
+    UpdateReplacePolicy: Retain
     Properties: 
       GroupDescription: Security group for bastion server
       SecurityGroupIngress: 
@@ -77,6 +79,7 @@ Resources:
         - !If [CreateInstanceRole, !Ref Ec2InstanceRole, !Ref InstanceRole]
 
   Ec2InstanceRole:
+    UpdateReplacePolicy: Retain
     Type: AWS::IAM::Role
     Condition: CreateInstanceRole
     Properties:

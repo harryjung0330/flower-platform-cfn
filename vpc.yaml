@@ -185,3 +185,18 @@ Resources:
         ClientSecGroup: !GetAtt WebServers.Outputs.WebServerSecGroupId
         DBMasterUserName: !Ref DBMasterUserName
         DBMasterPassword: !Ref DBMasterPassword
+
+  #--------------------------- endpoint ---------------------------------------------
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties: 
+      RouteTableIds:                     #어떤 route table이 이 resource에 route할수 있는지 지정
+        - !GetAtt WebServerSubnetFirst.Outputs.RouteTableId
+        - !GetAtt WebServerSubnetSecond.Outputs.RouteTableId
+        - !GetAtt PublicSubnetFirst.Outputs.RouteTableId
+        - !GetAtt PublicSubnetSecond.Outputs.RouteTableId
+      ServiceName: "com.amazonaws.ap-northeast-2.s3" 
+      VpcEndpointType: Gateway
+      VpcId: !Ref VPC
+  
+  

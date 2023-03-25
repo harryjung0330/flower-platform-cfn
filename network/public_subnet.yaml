@@ -25,6 +25,7 @@ Parameters:
 Resources: 
   #------ public subnet ----------------------
   PublicSubnet:
+    UpdateReplacePolicy: Retain
     Type: "AWS::EC2::Subnet"
     Properties:
       AvailabilityZone: !Ref AZ
@@ -33,6 +34,7 @@ Resources:
       VpcId: !Ref VpcId
     
   RouteTableForPublicSubnet:
+    UpdateReplacePolicy: Retain
     Type: "AWS::EC2::RouteTable"
     Properties:
       VpcId: !Ref VpcId

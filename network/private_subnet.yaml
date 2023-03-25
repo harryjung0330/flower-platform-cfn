@@ -21,6 +21,7 @@ Parameters:
 Resources: 
   #---------- private subnet for vpc endpoint ------------
   PrivateSubnet:
+    UpdateReplacePolicy: Retain
     Type: "AWS::EC2::Subnet"
     Properties:
       AvailabilityZone: !Ref AZ
@@ -28,6 +29,7 @@ Resources:
       VpcId: !Ref VpcId
   
   RouteTableForPrivateSubnet:
+    UpdateReplacePolicy: Retain
     Type: "AWS::EC2::RouteTable"
     Properties:
       VpcId: !Ref VpcId
