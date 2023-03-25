@@ -25,6 +25,16 @@ Parameters:
     Description: WebServer ami
     Type: String
     Default: ami-01667ac50214d9322
+  
+  DBMasterUserName:
+    Description: MasterUserName for DB
+    Type: String
+    Default: admin
+  
+  DBMasterPassword:
+    Description: MasterPassword for DB
+    Type: String
+    Default: helloWorld!
 
 Resources: 
   VPC:
@@ -157,3 +167,20 @@ Resources:
         SSHKeyName: !Ref WebServerKeyPairName
         BastionServerSecurityGroup: !GetAtt BastionServer.Outputs.SecurityGroupId
         AmiId: !Ref WebServerAmi
+  
+
+  #------------------------------ database ----------------------------------------------
+  Database:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'database/RDS.yaml']]
+      Parameters:
+        DBSubnets: !Join [',', [!GetAtt DatabaseSubnetFirst.Outputs.SubnetId, !GetAtt DatabaseSubnetSecond.Outputs.SubnetId]]
+        VpcId: !Ref VPC
+        BastionSecGroup: !GetAtt BastionServer.Outputs.SecurityGroupId
+        ClientSecGroup: !GetAtt WebServers.Outputs.WebServerSecGroupId
+        DBMasterUserName: !Ref DBMasterUserName
+        DBMasterPassword: !Ref DBMasterPassword
