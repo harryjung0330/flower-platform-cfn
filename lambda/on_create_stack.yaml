@@ -1,0 +1,150 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda function with cfn-response.
+Parameters:
+  CodeBucketName:
+    Type: String
+    Description: S3 bucket for code
+  CodeKey:
+    Type: String
+    Description: object key for the code
+  LayerKey:
+    Type: String
+    Description: object key for layer
+  
+  ResourceBucketName:
+    Type: String
+    Description: S3 bucket for resources
+  DMLKey:
+    Type: String
+    Description: DML file object key
+  DDLKey:
+    Type: String
+    Description: DDL file object key
+  DBEndpoint:
+    Type: String
+    Description: db endpoint 
+  DBUser:
+    Type: String
+    Description: Username for db
+  DBPassword:
+    Type: String
+    Description: password for db
+  
+  SecGroupId:
+    Type: String
+    Description: Security group for lambda
+  SubnetIds:
+    Type: List<String>
+    Description: subnet ids for lambda 
+  
+  #optional parameters
+  Timeout:
+    Type: Number
+    Description: timeout in seconds 
+    Default: 300
+  Runtime:
+    Type: String
+    Description: Runtime for lambda
+    Default: python3.7
+  
+Resources:
+  
+  LambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: LambdaLayer
+      Description: Layer for all lambdas
+      ContentUri: !Sub 
+        - "s3://${CodeBucketName}/${LayerKey}"
+        - CodeBucketName: !Ref CodeBucketName
+          LayerKey: !Ref LayerKey
+  
+  Function:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: python3.7
+      Role: arn:aws:iam::123456789012:role/lambda-role
+      Handler: index.handler
+      Environment:
+        Variables:
+          BUCKET_NAME: !Ref ResourceBucketName
+          DB_ENDPOINT: !Ref DBEndPoint
+          DDL_KEY: !Ref DDLKey
+          DML_KEY: !Ref DMLKey
+          PASSWORD: !Ref DBPassword
+          USER: !Ref DBUser
+      Timeout: !Ref Timeout
+      Layers: !Ref LambdaLayer
+      VpcConfig:
+        SecurityGroupIds: 
+         - !Ref SecGroupId
+        SubnetIds: 
+         - !Ref SubnetIds
+      Code:
+        S3Bucket: !Ref CodeBucketName
+        S3Key: !Ref CodeKey
+      Description: Invoke a function during stack creation.
+
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub ${AWS::StackName}-on-create-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow           #allow lambda to assume this role
+          Principal:
+           Service:
+            - lambda.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+      ManagedPolicyArns:
+        - !Ref LambdaNetworkPolicy
+        - !Ref CloudwatchExPolicy
+      Policies:
+      - PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect : "Allow"
+            Action: 
+              - s3:GetObject
+            Resource: 
+            - !Sub
+              - "arn:aws:s3:::${ResourceBucketName}/*"
+              - ResourceBucketName: !Ref ResourceBucketName
+ 
+  
+  CloudwatchExPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: cloudwatch-log-policy
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow #allow to write logs to cloudwatch
+          Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+          Resource: arn:aws:logs:*:*:*
+
+  LambdaNetworkPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: lambda-network-policy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - ec2:CreateNetworkInterface
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DeleteNetworkInterface
+              - ec2:AssignPrivateIpAddresses
+              - ec2:UnassignPrivateIpAddresses
+            Resource: '*'    
+Outputs:
+  LambdaArn:
+    Description: arn for lambda
+    Value: !GetAtt Function.Arn

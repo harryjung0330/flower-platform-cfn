@@ -198,5 +198,6 @@ Resources:
       ServiceName: "com.amazonaws.ap-northeast-2.s3" 
       VpcEndpointType: Gateway
       VpcId: !Ref VPC
-  
-  
+      
+  #------------------------- custom resources -----------------------------------
+

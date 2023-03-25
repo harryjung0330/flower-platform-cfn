@@ -1,8 +1,8 @@
-CREATE DATABASE flower_platform;
+CREATE DATABASE IF NOT EXISTS flower_platform;
 
 USE flower_platform;
 
-CREATE TABLE flower(
+CREATE TABLE IF NOT EXISTS flower(
 	flower_id MEDIUMINT NOT NULL AUTO_INCREMENT primary key,
    profile_pict_url varchar(255) NOT NULL,
     flower_story TEXT NOT NULL,
@@ -12,7 +12,7 @@ CREATE TABLE flower(
 );
 
 
-CREATE TABLE flower_pictures(
+CREATE TABLE IF NOT EXISTS flower_pictures(
 	flower_id MEDIUMINT,
     pict_url varchar(255),
     uploaded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -21,11 +21,11 @@ CREATE TABLE flower_pictures(
     CHECK(pict_url LIKE 'https://%')
 );
 
-CREATE TABLE authentication_providers(
+CREATE TABLE IF NOT EXISTS authentication_providers(
 	provider varchar(30) PRIMARY KEY
 );
 
-CREATE TABLE users(
+CREATE TABLE IF NOT EXISTS users(
 	user_id BIGINT auto_increment primary key,
 	email varchar(50),
     password varchar(255),
@@ -40,7 +40,7 @@ CREATE TABLE users(
 );
 
 
-CREATE TABLE session(
+CREATE TABLE IF NOT EXISTS session(
 	session_id BIGINT auto_increment primary key,
 	user_id BIGINT,
 	expires_at TIMESTAMP,
