@@ -13,13 +13,13 @@ Parameters:
   BastionServerSecurityGroup:
     Type: 'AWS::EC2::SecurityGroup::Id'
     Description: Security group for bastion server
-  #optional parameters
   SSHKeyName:
     Type: String
     Description: ssh key name for web server
   AmiId:
     Type: String
-    Default: ami-01667ac50214d9322
+    Description: AMI for web servers
+  #optional parameters
   CPUPolicyTargetValue:
     Type: String
     Description: The target utilization for the CPU metric

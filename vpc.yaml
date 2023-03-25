@@ -15,6 +15,16 @@ Parameters:
     Description: key pair name for bastion server
     Type: String
     Default: bastion-server-key-pair
+  
+  WebServerKeyPairName:
+    Description: key pair name for web servers
+    Type: String
+    Default: spring-web-server
+
+  WebServerAmi:
+    Description: WebServer ami
+    Type: String
+    Default: ami-01667ac50214d9322
 
 Resources: 
   VPC:
@@ -132,3 +142,18 @@ Resources:
         SubnetId: !GetAtt PublicSubnetFirst.Outputs.SubnetId
         VpcId: !Ref VPC
         KeypairName: !Ref BastionKeyPairName
+  
+  WebServers:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'compute/web_servers.yaml']]
+      Parameters:
+        LoadBalancerSubnets: !Join [',', [!GetAtt PublicSubnetFirst.Outputs.SubnetId, !GetAtt PublicSubnetSecond.Outputs.SubnetId]]
+        VPC: !Ref VPC
+        WebServerSubnets: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
+        SSHKeyName: !Ref WebServerKeyPairName
+        BastionServerSecurityGroup: !GetAtt BastionServer.Outputs.SecurityGroupId
+        AmiId: !Ref WebServerAmi
