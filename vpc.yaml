@@ -3,8 +3,8 @@ Description: Create VPC for flower platform
 Parameters:
   AZ:
     Description: AZ to use
-    Type: String
-    Default: ap-northeast-2a
+    Type: List<String>
+    Default: "ap-northeast-2a, ap-northeast-2c"
 
   BucketUrl:
     Description: it is a bucket template Url.
@@ -44,7 +44,7 @@ Resources:
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
 
-  PublicSubnet:
+  PublicSubnetFirst:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       Tags:
@@ -54,22 +54,23 @@ Resources:
       Parameters:
         VpcId: !Ref VPC
         IgId: !GetAtt InternetGateway.InternetGatewayId
-        AZ: !Ref AZ
+        AZ: !Select [ 0, !Ref AZ]
         CidrBlock: 10.0.0.0/24
 
-  WebServerSubnet:
+  PublicSubnetSecond:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       Tags:
       - Key: Stage
         Value: test
-      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/public_subnet.yaml']]
       Parameters:
         VpcId: !Ref VPC
-        AZ: !Ref AZ
+        IgId: !GetAtt InternetGateway.InternetGatewayId
+        AZ: !Select [ 1, !Ref AZ]
         CidrBlock: 10.0.1.0/24
-  
-  DatabaseSubnet:
+
+  WebServerSubnetFirst:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       Tags:
@@ -78,11 +79,48 @@ Resources:
       TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
       Parameters:
         VpcId: !Ref VPC
-        AZ: !Ref AZ
+        AZ: !Select [ 0, !Ref AZ]
         CidrBlock: 10.0.2.0/24
+  
+  WebServerSubnetSecond:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        AZ: !Select [ 1, !Ref AZ]
+        CidrBlock: 10.0.3.0/24
+  
+  DatabaseSubnetFirst:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        AZ: !Select [ 0, !Ref AZ]
+        CidrBlock: 10.0.4.0/24
+
+  DatabaseSubnetSecond:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        AZ: !Select [ 1, !Ref AZ]
+        CidrBlock: 10.0.5.0/24
 
   #---------------------------------- compute resource-----------------------------
 
+  #create bastion server
   BastionServer:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
@@ -91,6 +129,6 @@ Resources:
         Value: test
       TemplateURL: !Join ['', [!Ref BucketUrl, 'compute/bastion_server.yaml']]
       Parameters:
-        SubnetId: !Ref PublicSubnet
+        SubnetId: !GetAtt PublicSubnetFirst.Outputs.SubnetId
         VpcId: !Ref VPC
         KeypairName: !Ref BastionKeyPairName
