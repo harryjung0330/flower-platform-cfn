@@ -19,7 +19,12 @@ Parameters:
   AmiId:
     Type: String
     Description: AMI for web servers
+    
   #optional parameters
+  HealthCheckPath:
+    Type: String
+    Description: Health check path for the webserver
+    Default: '/'
   CPUPolicyTargetValue:
     Type: String
     Description: The target utilization for the CPU metric
@@ -83,7 +88,7 @@ Resources:
       VpcId: !Ref VPC
       HealthCheckEnabled: true
       HealthCheckIntervalSeconds: 20
-      HealthCheckPath: /
+      HealthCheckPath: !Ref HealthCheckPath
       HealthCheckPort: 80
       HealthCheckProtocol: HTTP
 

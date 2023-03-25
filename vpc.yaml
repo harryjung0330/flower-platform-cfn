@@ -167,6 +167,7 @@ Resources:
         SSHKeyName: !Ref WebServerKeyPairName
         BastionServerSecurityGroup: !GetAtt BastionServer.Outputs.SecurityGroupId
         AmiId: !Ref WebServerAmi
+        HealthCheckPath: /actuator/health
   
 
   #------------------------------ database ----------------------------------------------
