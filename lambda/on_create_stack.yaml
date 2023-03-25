@@ -50,36 +50,38 @@ Parameters:
 Resources:
   
   LambdaLayer:
-    Type: AWS::Serverless::LayerVersion
+    Type: AWS::Lambda::LayerVersion
     Properties:
-      LayerName: LambdaLayer
+      LayerName: !Sub ${AWS::StackName}-on-create-lambda-layer
       Description: Layer for all lambdas
-      ContentUri: !Sub 
-        - "s3://${CodeBucketName}/${LayerKey}"
-        - CodeBucketName: !Ref CodeBucketName
-          LayerKey: !Ref LayerKey
+      CompatibleRuntimes: 
+        - python3.7
+        - python3.8
+      Content: 
+        S3Bucket: !Ref CodeBucketName
+        S3Key: !Ref LayerKey
   
   Function:
     Type: AWS::Lambda::Function
     Properties:
       Runtime: python3.7
-      Role: arn:aws:iam::123456789012:role/lambda-role
+      Role: !GetAtt LambdaRole.Arn
       Handler: index.handler
       Environment:
         Variables:
           BUCKET_NAME: !Ref ResourceBucketName
-          DB_ENDPOINT: !Ref DBEndPoint
+          DB_ENDPOINT: !Ref DBEndpoint
           DDL_KEY: !Ref DDLKey
           DML_KEY: !Ref DMLKey
           PASSWORD: !Ref DBPassword
           USER: !Ref DBUser
       Timeout: !Ref Timeout
-      Layers: !Ref LambdaLayer
+      Layers:
+       - !Ref LambdaLayer
       VpcConfig:
         SecurityGroupIds: 
          - !Ref SecGroupId
-        SubnetIds: 
-         - !Ref SubnetIds
+        SubnetIds: !Ref SubnetIds
       Code:
         S3Bucket: !Ref CodeBucketName
         S3Key: !Ref CodeKey
@@ -103,7 +105,8 @@ Resources:
         - !Ref LambdaNetworkPolicy
         - !Ref CloudwatchExPolicy
       Policies:
-      - PolicyDocument:
+      - PolicyName: !Sub ${AWS::StackName}-resource-bucket-access-policy
+        PolicyDocument:
           Version: "2012-10-17"
           Statement:
           - Effect : "Allow"
