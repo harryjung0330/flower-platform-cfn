@@ -121,7 +121,7 @@ Resources:
   CloudwatchExPolicy:
     Type: "AWS::IAM::ManagedPolicy"
     Properties:
-      ManagedPolicyName: cloudwatch-log-policy
+      ManagedPolicyName: !Sub ${AWS::StackName}-cloudwatch-log-policy
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -135,7 +135,7 @@ Resources:
   LambdaNetworkPolicy:
     Type: "AWS::IAM::ManagedPolicy"
     Properties:
-      ManagedPolicyName: lambda-network-policy
+      ManagedPolicyName: !Sub ${AWS::StackName}-lambda-network-policy
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
