@@ -17,3 +17,12 @@ aws cloudformation create-stack --template-body file://RDS.yaml --capabilities C
  ParameterKey=BastionSecGroup,ParameterValue=sg-06bcb4f3c63436922 ParameterKey=ClientSecGroup,ParameterValue=sg-0e516b236a277c345 --stack-name rds-example
 
 
+aws cloudformation create-stack --template-body file://on_create_stack.yaml --capabilities CAPABILITY_NAMED_IAM --parameters ParameterKey=DBUser,ParameterValue="admin" \
+ ParameterKey=DBPassword,ParameterValue=helloworld! ParameterKey=SubnetIds,ParameterValue="subnet-0f67d0606ceb1cd97\,subnet-0a2c04fc6630d6e0d"\
+ ParameterKey=CodeBucketName,ParameterValue=cloudformation-code-repo-flower-platform ParameterKey=CodeKey,ParameterValue=non-cfn/on_create_stack/on_create_stack.py.zip\
+ ParameterKey=LayerKey,ParameterValue=non-cfn/on_create_stack/python.zip ParameterKey=ResourceBucketName,ParameterValue=cloudformation-code-repo-flower-platform\
+ ParameterKey=DMLKey,ParameterValue=non-cfn/database/dml.sql ParameterKey=DDLKey,ParameterValue=non-cfn/database/ddl.sql\
+ ParameterKey=DBEndpoint,ParameterValue=test-env-database-1vf0oezdmw6iu-rds-obniw2lxrpmd.c3ftl6psdgtp.ap-northeast-2.rds.amazonaws.com\
+ ParameterKey=SecGroupId,ParameterValue=sg-0c015b255d07cfadf --stack-name rds-example
+
+

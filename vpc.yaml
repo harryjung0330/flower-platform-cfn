@@ -219,10 +219,10 @@ Resources:
         ResourceBucketName: !Ref OnCreateStackBucketName
         DMLKey: 'database/dml.sql'
         DDLKey: 'database/ddl.sql'
-        DBEndPoint: !GetAtt Database.Outputs.DBEndpoint
+        DBEndpoint: !GetAtt Database.Outputs.DBEndpoint
         DBUser: !Ref DBMasterUserName
         DBPassword: !Ref DBMasterPassword
-        SecGroupId: !Ref WebServers.Outputs.WebServerSecGroupId
+        SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
         SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
 
   OnCreateStack:

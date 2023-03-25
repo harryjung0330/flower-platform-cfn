@@ -164,7 +164,7 @@ Outputs:
     Value: !Ref LoadBalancer
   
   WebServerSecGroupId:
-    Description: id for bastion server
+    Description: id for web server
     Value: !GetAtt WebServerSecGroup.GroupId
   
   AsgName:
