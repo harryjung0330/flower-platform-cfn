@@ -1,0 +1,94 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ---
+
+Parameters:
+  DBSubnets:
+    Type: 'List<AWS::EC2::Subnet::Id>'
+    Description: At least two subnets in different Availability Zones for db 
+  
+  VpcId:
+    Type: String
+    Description: vpc id for security group of DB.
+  
+  BastionSecGroup:
+    Type: String
+    Description: bastion sg to access the RDS
+
+  ClientSecGroup:
+    Type: String
+    Description: Sg for the client that will use this db
+
+  DBMasterUserName:
+    Type: String
+    Description: master username
+  
+  DBMasterPassword:
+    Type: String
+    Description: master password
+
+  StorageSize:
+    Type: String
+    Description: storage size of database
+    Default: '20'
+  
+  DBInstanceClass:
+    Type: String
+    Description: instance class of RDS
+    Default: db.t2.micro
+  
+  Engine:
+    Type: String
+    Description: engine for RDS
+    Default: mysql
+
+Resources: 
+  Rds:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: !Ref StorageSize
+      DBInstanceClass: !Ref DBInstanceClass
+      DBSubnetGroupName: !Ref RdsSubGroup
+      Engine: !Ref Engine
+      MasterUsername: !Ref DBMasterUserName
+      MasterUserPassword: !Ref DBMasterPassword
+      VPCSecurityGroups:
+        - !Ref SecGroup
+
+  SecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security group for RDS database
+      SecurityGroupIngress: 
+        - SourceSecurityGroupId: !Ref BastionSecGroup
+          FromPort: 3306
+          IpProtocol: tcp
+          ToPort: 3306
+        - SourceSecurityGroupId: !Ref ClientSecGroup
+          FromPort: 3306
+          IpProtocol: tcp
+          ToPort: 3306
+      VpcId: !Ref VpcId
+
+  RdsSubGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: subnet Group For RDS
+      DBSubnetGroupName: RDSsubGroup
+      SubnetIds: !Ref DBSubnets
+
+Outputs:
+  DBInstanceName:
+    Description: DB instance name
+    Value: !Ref Rds
+  
+  DBEndpoint:
+    Description: id for bastion server
+    Value: !GetAtt Rds.Endpoint.Address
+  
+  DBSecGroup:
+    Description: Security group of DB
+    Value: !GetAtt SecGroup.GroupId
+  
+  DBInstanceArn:
+    Description: Target group for web servers
+    Value: !GetAtt Rds.DBInstanceArn
