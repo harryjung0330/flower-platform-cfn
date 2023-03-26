@@ -11,24 +11,6 @@ Parameters:
     Type: String
     Description: object key for layer
   
-  ResourceBucketName:
-    Type: String
-    Description: S3 bucket for resources
-  DMLKey:
-    Type: String
-    Description: DML file object key
-  DDLKey:
-    Type: String
-    Description: DDL file object key
-  DBEndpoint:
-    Type: String
-    Description: db endpoint 
-  DBUser:
-    Type: String
-    Description: Username for db
-  DBPassword:
-    Type: String
-    Description: password for db
   
   SecGroupId:
     Type: String
@@ -70,15 +52,7 @@ Resources:
     Properties:
       Runtime: python3.7
       Role: !GetAtt LambdaRole.Arn
-      Handler: !Ref LambdaHandler
-      Environment:
-        Variables:
-          BUCKET_NAME: !Ref ResourceBucketName
-          DB_ENDPOINT: !Ref DBEndpoint
-          DDL_KEY: !Ref DDLKey
-          DML_KEY: !Ref DMLKey
-          PASSWORD: !Ref DBPassword
-          USER: !Ref DBUser
+      Handler: !Ref LambdaHandler   
       Timeout: !Ref Timeout
       Layers:
        - !Ref LambdaLayer
