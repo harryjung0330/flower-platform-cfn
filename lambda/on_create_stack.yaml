@@ -41,7 +41,7 @@ Parameters:
   Timeout:
     Type: Number
     Description: timeout in seconds 
-    Default: 300
+    Default: 30
   Runtime:
     Type: String
     Description: Runtime for lambda

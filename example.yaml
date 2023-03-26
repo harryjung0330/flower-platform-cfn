@@ -1,12 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: ---
-Metadata: 
-
-Parameters: 
-
-Mappings: 
-
-Conditions: 
 
 Resources: 
   OnCreateLambda:
@@ -15,22 +8,21 @@ Resources:
       Tags:
       - Key: Stage
         Value: test
-      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/on_create_stack.yaml']]
+      TemplateURL: !Join ['', ['https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/', 'lambda/on_create_stack.yaml']]
       Parameters:
-        CodeBucketName: !Ref OnCreateStackBucketName
+        CodeBucketName: cloudformation-code-repo-flower-platform
         CodeKey: 'non-cfn/on_create_stack/on_create_stack.py.zip'
         LayerKey: 'non-cfn/on_create_stack/python.zip'
-        ResourceBucketName: !Ref OnCreateStackBucketName
+        ResourceBucketName: cloudformation-code-repo-flower-platform
         DMLKey: 'non-cfn/database/dml.sql'
         DDLKey: 'non-cfn/database/ddl.sql'
-        DBEndpoint: !GetAtt Database.Outputs.DBEndpoint
-        DBUser: !Ref DBMasterUserName
-        DBPassword: !Ref DBMasterPassword
-        SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
-        SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
+        DBEndpoint: test-env-database-1ovxafcat5zph-rds-hspnvz5kywfc.c3ftl6psdgtp.ap-northeast-2.rds.amazonaws.com
+        DBUser: admin
+        DBPassword: helloWorld!
+        SecGroupId: sg-0b05a014670a5734a
+        SubnetIds: !Join [',', ['subnet-0978a65d3e968cddd', 'subnet-050588264810368ff']]
 
   OnCreateStack:
     Type: "Custom::OnCreateStack"
     Properties:
       ServiceToken: !GetAtt OnCreateLambda.Outputs.LambdaArn
-Outputs:
