@@ -46,7 +46,11 @@ Parameters:
     Type: String
     Description: Runtime for lambda
     Default: python3.7
-  
+  LambdaHandler:
+    Type: String
+    Description: Handler for lambda
+    Default: on_create_stack.lambda_handler
+
 Resources:
   
   LambdaLayer:
@@ -66,7 +70,7 @@ Resources:
     Properties:
       Runtime: python3.7
       Role: !GetAtt LambdaRole.Arn
-      Handler: on_create_stack.lambda_handler
+      Handler: !Ref LambdaHandler
       Environment:
         Variables:
           BUCKET_NAME: !Ref ResourceBucketName

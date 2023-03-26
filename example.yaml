@@ -1,0 +1,36 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ---
+Metadata: 
+
+Parameters: 
+
+Mappings: 
+
+Conditions: 
+
+Resources: 
+  OnCreateLambda:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/on_create_stack.yaml']]
+      Parameters:
+        CodeBucketName: !Ref OnCreateStackBucketName
+        CodeKey: 'non-cfn/on_create_stack/on_create_stack.py.zip'
+        LayerKey: 'non-cfn/on_create_stack/python.zip'
+        ResourceBucketName: !Ref OnCreateStackBucketName
+        DMLKey: 'non-cfn/database/dml.sql'
+        DDLKey: 'non-cfn/database/ddl.sql'
+        DBEndpoint: !GetAtt Database.Outputs.DBEndpoint
+        DBUser: !Ref DBMasterUserName
+        DBPassword: !Ref DBMasterPassword
+        SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
+        SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
+
+  OnCreateStack:
+    Type: "Custom::OnCreateStack"
+    Properties:
+      ServiceToken: !GetAtt OnCreateLambda.Outputs.LambdaArn
+Outputs:

@@ -49,7 +49,7 @@ Resources:
           Ebs:
             VolumeType: gp2
             VolumeSize: 21
-            DeleteOnTermination: false
+            DeleteOnTermination: true
             Encrypted: true
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
