@@ -10,8 +10,9 @@ Parameters:
   LayerKey:
     Type: String
     Description: object key for layer
-  
-  
+  ResourceBucketName:
+    Type: String
+    Description: bucketname where resources are located
   SecGroupId:
     Type: String
     Description: Security group for lambda

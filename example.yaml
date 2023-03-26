@@ -11,6 +11,7 @@ Resources:
       TemplateURL: !Join ['', ['https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/', 'lambda/on_create_stack.yaml']]
       Parameters:
         CodeBucketName: cloudformation-code-repo-flower-platform
+        ResourceBucketName: cloudformation-code-repo-flower-platform
         CodeKey: 'non-cfn/on_create_stack/on_create_stack.py.zip'
         LayerKey: 'non-cfn/on_create_stack/python.zip'
         SecGroupId: sg-0b05a014670a5734a
