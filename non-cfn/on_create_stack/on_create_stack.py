@@ -50,7 +50,7 @@ def create(event, context):
     dbEndpoint = properties.get('DB_ENDPOINT')
     user = properties.get('USER')
     password = properties.get('PASSWORD')
-    S3Bucket = properties.get('S3Bucket')
+    S3Bucket = properties.get('BUCKET_NAME')
     ddlKey = properties.get('DDL_KEY')
     dmlKey = properties.get('DML_KEY')
     
