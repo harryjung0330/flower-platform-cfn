@@ -129,7 +129,7 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     Properties: 
       Roles: 
-        - !If [IsRoleArnEmpty, !Ref AWS::NoValue, !Ref !Ref RoleArn]
+        - !If [IsRoleArnEmpty, !Ref AWS::NoValue, !Ref RoleArn]
         - !If [IsUsingCodePipeline, !Ref EC2CodeDeployAccessPolicy, !Ref AWS::NoValue]
   
   Ec2InstanceRole:
