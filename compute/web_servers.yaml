@@ -19,7 +19,8 @@ Parameters:
   AmiId:
     Type: String
     Description: AMI for web servers
-
+  
+  
   #optional parameters
   HealthCheckPath:
     Type: String
@@ -41,7 +42,22 @@ Parameters:
     Type: String
     Description: Ec2 instance type for webserver
     Default: t2.micro
-  
+  RoleArn:
+    Type: String
+    Description: Role for web servers
+    Default: ''
+  CicdSourceBucketName: #specify source bucket name if using codeDeploy
+    Type: String
+    Description: Source s3 bucket name
+    Default: ''
+  Region:
+    Type: String
+    Description: region for web servers
+    Default: ap-northeast-2
+
+Conditions:
+  IsRoleArnEmpty: !Equals [ !Ref RoleArn, '' ]
+  IsUsingCodePipeline: !Not [!Equals [!Ref CicdSourceBucketName, ''] ]
  
 Resources:
   LoadBalancer:
@@ -106,7 +122,50 @@ Resources:
         Monitoring: 
           Enabled: true
         KeyName: !Ref SSHKeyName
-
+        IamInstanceProfile: 
+          Arn: !Ref InstanceProfile
+    
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties: 
+      Roles: 
+        - !If [IsRoleArnEmpty, !Ref AWS::NoValue, !Ref !Ref RoleArn]
+        - 
+  
+  Ec2InstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - 
+            Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+        
+  EC2CodDeployAccessPolicy:
+    Type: "AWS::IAM::ManagedPolicy"
+    Condition: IsUsingCodePipeline
+    Properties:
+      ManagedPolicyName: !Sub ${AWS::StackName}-webservers-codeDeploy-access-policy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - "s3:Get*"
+              - "s3:List*"
+            Resource: 
+              - !Sub
+                - "arn:aws:s3:::${Region}/*"
+                - Region: !Ref Region 
+              - !Sub
+                - "arn:aws:s3:::${SourceBucket}/*
+                - SourceBucket: !Ref CicdSourceBucketName
+      
   LoadBalancerSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties: 

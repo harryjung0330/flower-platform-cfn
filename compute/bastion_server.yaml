@@ -59,6 +59,7 @@ Resources:
           GroupSet:
             - !Ref SecGroup
       KeyName: !Ref KeypairName
+      IamInstanceProfile: !Ref InstanceProfile
 
   SecGroup:
     Type: AWS::EC2::SecurityGroup
