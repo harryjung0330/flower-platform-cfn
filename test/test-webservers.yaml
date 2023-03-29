@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: test code for web-servers
+
+Resources: 
+  WebServers:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'compute/web_servers.yaml']]
+      Parameters:
+        LoadBalancerSubnets: !Join [',', [subnet-0c92943f1c5aea924, subnet-05c157508478e9f72]]
+        VPC: !Ref VPC
+        WebServerSubnets: !Join [',', [subnet-0fe02bf81578d41ed, subnet-018cd5388a2e28880]]
+        SSHKeyName: bastion-server-key-pair
+        BastionServerSecurityGroup: sg-000b18073d863b658
+        AmiId: ami-01667ac50214d9322
+        HealthCheckPath: /actuator/health
+        CicdSourceBucketName: codepipeline-ap-northeast-2-90936547683
+
