@@ -135,6 +135,9 @@ Resources:
   Ec2InstanceRole:
     Type: AWS::IAM::Role
     Properties:
+      RoleName: !Sub ${AWS::StackName}-webservers
+      ManagedPolicyArns:
+        - !Ref EC2CodeDeployAccessPolicy
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -150,7 +153,7 @@ Resources:
     Type: "AWS::IAM::ManagedPolicy"
     Condition: IsUsingCodePipeline
     Properties:
-      ManagedPolicyName: !Sub ${AWS::StackName}-webservers-codeDeploy-access-policy
+      ManagedPolicyName: !Sub ${AWS::StackName}-webservers-codeDeploy
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
