@@ -42,9 +42,9 @@ Parameters:
     Type: String
     Description: Ec2 instance type for webserver
     Default: t2.micro
-  RoleArn:
+  RoleName:
     Type: String
-    Description: Role for web servers
+    Description: Role name for web servers
     Default: ''
   CicdSourceBucketName: #specify source bucket name if using codeDeploy
     Type: String
@@ -56,7 +56,7 @@ Parameters:
     Default: ap-northeast-2
 
 Conditions:
-  IsRoleArnEmpty: !Equals [ !Ref RoleArn, '' ]
+  IsRoleNameEmpty: !Equals [ !Ref RoleName, '' ]
   IsUsingCodePipeline: !Not [!Equals [!Ref CicdSourceBucketName, ''] ]
  
 Resources:
@@ -129,8 +129,8 @@ Resources:
     Type: AWS::IAM::InstanceProfile
     Properties: 
       Roles: 
-        - !If [IsRoleArnEmpty, !Ref AWS::NoValue, !Ref RoleArn]
-        - !If [IsUsingCodePipeline, !Ref EC2CodeDeployAccessPolicy, !Ref AWS::NoValue]
+        - !If [IsRoleNameEmpty, !Ref AWS::NoValue, !Get RoleName]
+        - !If [IsUsingCodePipeline, !Ref EC2InstanceRole, !Ref AWS::NoValue]
   
   Ec2InstanceRole:
     Type: AWS::IAM::Role
