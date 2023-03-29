@@ -130,7 +130,7 @@ Resources:
     Properties: 
       Roles: 
         - !If [IsRoleArnEmpty, !Ref AWS::NoValue, !Ref !Ref RoleArn]
-        - 
+        - !If [IsUsingCodePipeline, !Ref EC2CodeDeployAccessPolicy, !Ref AWS::NoValue]
   
   Ec2InstanceRole:
     Type: AWS::IAM::Role
@@ -146,7 +146,7 @@ Resources:
             Action:
               - sts:AssumeRole
         
-  EC2CodDeployAccessPolicy:
+  EC2CodeDeployAccessPolicy:
     Type: "AWS::IAM::ManagedPolicy"
     Condition: IsUsingCodePipeline
     Properties:

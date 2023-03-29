@@ -173,7 +173,6 @@ Resources:
         BastionServerSecurityGroup: !GetAtt BastionServer.Outputs.SecurityGroupId
         AmiId: !Ref WebServerAmi
         HealthCheckPath: /actuator/health
-        RoleArn: 
   
 
   #------------------------------ database ----------------------------------------------

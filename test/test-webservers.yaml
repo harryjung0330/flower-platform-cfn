@@ -1,6 +1,23 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: test code for web-servers
 
+Parameters:
+  BucketUrl:
+      Description: it is a bucket template Url.
+      Type: String
+      Default: "https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/"
+
+  WebServerKeyPairName:
+    Description: key pair name for web servers
+    Type: String
+    Default: spring-web-server
+
+  WebServerAmi:
+    Description: WebServer ami
+    Type: String
+    Default: ami-01667ac50214d9322
+
+
 Resources: 
   WebServers:
     Type: 'AWS::CloudFormation::Stack'
@@ -11,11 +28,11 @@ Resources:
       TemplateURL: !Join ['', [!Ref BucketUrl, 'compute/web_servers.yaml']]
       Parameters:
         LoadBalancerSubnets: !Join [',', [subnet-0c92943f1c5aea924, subnet-05c157508478e9f72]]
-        VPC: !Ref VPC
+        VPC: vpc-04ce239b3b78e671e
         WebServerSubnets: !Join [',', [subnet-0fe02bf81578d41ed, subnet-018cd5388a2e28880]]
-        SSHKeyName: bastion-server-key-pair
+        SSHKeyName: !Ref WebServerKeyPairName
         BastionServerSecurityGroup: sg-000b18073d863b658
-        AmiId: ami-01667ac50214d9322
+        AmiId: !Ref WebServerAmi
         HealthCheckPath: /actuator/health
         CicdSourceBucketName: codepipeline-ap-northeast-2-90936547683
 
