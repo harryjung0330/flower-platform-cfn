@@ -163,7 +163,7 @@ Resources:
                 - "arn:aws:s3:::${Region}/*"
                 - Region: !Ref Region 
               - !Sub
-                - "arn:aws:s3:::${SourceBucket}/*
+                - "arn:aws:s3:::${SourceBucket}/*"
                 - SourceBucket: !Ref CicdSourceBucketName
       
   LoadBalancerSecGroup:
@@ -233,5 +233,3 @@ Outputs:
   TargetGroupArn:
     Description: Target group for web servers
     Value: !GetAtt TargetGroup.TargetGroupArn
-
-    
