@@ -130,7 +130,7 @@ Resources:
     Properties: 
       Roles: 
         - !If [IsRoleNameEmpty, !Ref AWS::NoValue, !Ref RoleName]
-        - !If [IsUsingCodePipeline, !Ref EC2InstanceRole, !Ref AWS::NoValue]
+        - !If [IsUsingCodePipeline, !Ref Ec2InstanceRole, !Ref AWS::NoValue]
   
   Ec2InstanceRole:
     Type: AWS::IAM::Role
