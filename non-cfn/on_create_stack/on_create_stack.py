@@ -14,6 +14,7 @@ helper = CfnResource(
 def lambda_handler(event, context):
     helper(event, context)
     
+    
     return {
         'statusCode': 200,
         'body': json.dumps('success')
@@ -39,6 +40,18 @@ def executeStatements(cursor, sqlList):
         cursor.execute(sql);
     cursor.execute("COMMIT;")
     
+def createConfigFile(S3Bucket, fileKey, configMap):
+    s3 = boto3.resource('s3')
+    obj = s3.Object(S3Bucket, fileKey)
+    
+    body = ""
+    for key, value in configMap.items():
+        body = body + key
+        body = body + "="
+        body = body + value + "\n"
+        
+    obj.put(Body = body)
+    
     
 @helper.create
 def create(event, context):
@@ -53,6 +66,14 @@ def create(event, context):
     S3Bucket = properties.get('BUCKET_NAME')
     ddlKey = properties.get('DDL_KEY')
     dmlKey = properties.get('DML_KEY')
+    
+    #for creating config file
+    configFileKey = properties.get("CONFIG_FILE_KEY")
+    configMap = properties.get("WEB_SERVER_ENV")
+    
+    print(configMap)
+    print(type(configMap))
+    
     
     try:
         connection = pymysql.connect(host = dbEndpoint, port = 3306, user=user, passwd=password, charset = 'utf8')
@@ -81,6 +102,14 @@ def create(event, context):
 
 @helper.update
 def update(event, context):
+    #for creating config file
+    configFileKey = properties.get("CONFIG_FILE_KEY")
+    configMap = properties.get("WEB_SERVER_ENV")
+    
+    print(configMap)
+    print(type(configMap))
+    
+    
     print("Got Update")
     return "MyNewResourceId"
 
