@@ -30,8 +30,25 @@ Parameters:
     Description: layer for lambda layer
     Type: String
     Default: arn:aws:lambda:ap-northeast-2:024721397924:layer:test-env-OnCreateLambda-17YG4O2KZKTK2-on-create-lambda-layer:1
+  
+  LambdaLayerKey:
+    Description: key for lambda layer zip file
+    Type: String
+    Default: "non-cfn/lambda_layer/python.zip"
 
-Resources: 
+Resources:
+  LambdaLayer:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/layer.yaml']]  #specify lambda template
+      Parameters:
+        LayerBucketName: !Ref OnCreateStackBucketName
+        LayerS3Key: !Ref LambdaLayerKey
+  
+
   OnCreateLambda:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
@@ -45,4 +62,4 @@ Resources:
         SecGroupId: !Ref LambdaSecGroupId
         SubnetIds: !Join [',', [!Ref SubnetIdFirst, !Ref SubnetIdSecond]]
         LambdaHandler: create_config_file.lambda_handler
-        LambdaLayerArns: !Join [ ',', [!Ref LambdaLayerArn, 'arn:aws:lambda:ap-northeast-2:024721397924:layer:OnCreateStackLayer:2']]
+        LambdaLayerArns: !Join [ ',', [!GetAtt LambdaLayer.Outputs.LambdaLayerArn ]]
