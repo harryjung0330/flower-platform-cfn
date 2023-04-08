@@ -34,10 +34,9 @@ Parameters:
     Default: ""
 
 Conditions:
-  isLambdaLayerArnsEmpty: !Equals [!Ref LambdaLayerArns, '']
+  isLambdaLayerArnsEmpty: !Equals [ !Join ['', !Ref LambdaLayerArns] , '']
 
 Resources:
-  
   Function:
     Type: AWS::Lambda::Function
     Properties:
