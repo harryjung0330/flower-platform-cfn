@@ -234,10 +234,10 @@ Resources:
       Tags:
       - Key: Stage
         Value: test
-      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/init_db.yaml']]
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/on_create_stack.yaml']]
       Parameters:
         CodeBucketName: !Ref OnCreateStackBucketName
-        CodeKey: 'non-cfn/on_create_stack/on_create_stack.py.zip'
+        CodeKey: 'non-cfn/on_create_stack/init_db.py.zip'
         LambdaLayerArns: !Join [ ',', [!GetAtt LambdaLayer.Outputs.LambdaLayerArn ]]
         SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
         SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
@@ -254,6 +254,29 @@ Resources:
       USER: !Ref DBMasterUserName
       PASSWORD: !Ref DBMasterPassword
 
+  CreateConfigLambda:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/on_create_stack.yaml']]  #specify lambda template
+      Parameters:
+        CodeBucketName: !Ref OnCreateStackBucketName
+        CodeKey: 'non-cfn/on_create_stack/create_config_file.py.zip'
+        SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
+        SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
+        LambdaHandler: create_config_file.lambda_handler
+        LambdaLayerArns: !Join [ ',', [!GetAtt LambdaLayer.Outputs.LambdaLayerArn ]]
+
+  CreateConfigCR:
+    Type: "Custom::OnCreateStack"
+    Properties:
+      ServiceToken: !GetAtt CreateConfigLambda.Outputs.LambdaArn
+      WEB_SERVER_ENV:
+        spring.active: hello
+      CONFIG_FILE_KEY: "config/web_server/application.properties"
+      BUCKET_NAME: !Ref OnCreateStackBucketName
   
   #----------------------------------- iam ----------------------------------------------------------
 
@@ -270,8 +293,25 @@ Resources:
           - !Sub
             - "arn:aws:s3:::${ResourceBucketName}/*"
             - ResourceBucketName: !Ref OnCreateStackBucketName
-      PolicyName: String
+      PolicyName: test-env-read-resource-bucket
       Roles: 
-        - !GetAtt OnCreateLambda.Outputs.LambdaRoleName
+        - !GetAtt InitDBLambda.Outputs.LambdaRoleName
+
+  CfnBucketWritePolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect : "Allow"
+          Action: 
+            - s3:PutObject
+          Resource: 
+          - !Sub
+            - "arn:aws:s3:::${ResourceBucketName}/*"
+            - ResourceBucketName: !Ref OnCreateStackBucketName
+      PolicyName: test-env-write-resource-bucket
+      Roles: 
+        - !GetAtt CreateConfigLambda.Outputs.LambdaRoleName
   
     
