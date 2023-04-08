@@ -47,5 +47,4 @@ Resources:
         SecGroupId: !Ref LambdaSecGroupId
         SubnetIds: !Join [',', [!Ref SubnetIdFirst, !Ref SubnetIdSecond]]
         LambdaHandler: create_config_file.lambda_handler
-        LambdaLayerArns: !Join[',' [!Ref LambdaLayerArn]]
-  
+        LambdaLayerArns: !Join [',' [!Ref LambdaLayerArn]]
