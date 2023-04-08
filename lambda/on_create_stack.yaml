@@ -44,7 +44,7 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Handler: !Ref LambdaHandler   
       Timeout: !Ref Timeout
-      Layers: !Ref LambdaLayerArns #If [IsLambdaLayerArnsEmpty, !Ref AWS::NoValue, !Split [ ',', !Ref LambdaLayerArns ] ]
+      Layers: !If [IsLambdaLayerArnsEmpty, !Ref AWS::NoValue,  !Ref LambdaLayerArns ]
       VpcConfig:
         SecurityGroupIds: 
          - !Ref SecGroupId
