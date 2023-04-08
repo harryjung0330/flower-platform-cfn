@@ -34,7 +34,7 @@ Parameters:
     Default: ""
 
 Conditions:
-  isLambdaLayerArnsEmpty: !Equals [!Ref LambdaLayerArns, ""]
+  isLambdaLayerArnsEmpty: !Equals [!Ref LambdaLayerArns, '']
 
 Resources:
   

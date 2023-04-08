@@ -1,7 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description:
-Metadata: 
-
+Description: file to test on_create_stack.yaml
 Parameters:
   BucketUrl:
     Type: String
@@ -47,4 +45,4 @@ Resources:
         SecGroupId: !Ref LambdaSecGroupId
         SubnetIds: !Join [',', [!Ref SubnetIdFirst, !Ref SubnetIdSecond]]
         LambdaHandler: create_config_file.lambda_handler
-        LambdaLayerArns: !Join [',' [!Ref LambdaLayerArn]]
+        LambdaLayerArns: !Join [',' ,[!Ref LambdaLayerArn]]
