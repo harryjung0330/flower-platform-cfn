@@ -57,7 +57,6 @@ Resources:
   LambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub ${AWS::StackName}-on-create-lambda-role
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
