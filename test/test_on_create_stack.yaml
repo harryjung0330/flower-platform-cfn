@@ -26,11 +26,6 @@ Parameters:
     Type: String
     Default: sg-055f241b00b926a0e
   
-  LambdaLayerArn:
-    Description: layer for lambda layer
-    Type: String
-    Default: arn:aws:lambda:ap-northeast-2:024721397924:layer:test-env-OnCreateLambda-17YG4O2KZKTK2-on-create-lambda-layer:1
-  
   LambdaLayerKey:
     Description: key for lambda layer zip file
     Type: String

@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description:
-Metadata: 
+Description: Test for create_config_file.yaml 
 
 Parameters:
   BucketUrl:
@@ -16,17 +15,17 @@ Parameters:
   SubnetIdFirst:
     Description: subnet id for lambda
     Type: String
-    Default: subnet-0fe02bf81578d41ed
+    Default: subnet-0a147bc3ebedb6480
   
   SubnetIdSecond:
     Description: subnet id for lambda
     Type: String
-    Default: subnet-018cd5388a2e28880
+    Default: subnet-089ac73dd5c21a544
   
   LambdaSecGroupId:
     Description: sec group for lambda
     Type: String
-    Default: sg-000b18073d863b658
+    Default: sg-055f241b00b926a0e
   
   LambdaLayerArn:
     Description: layer for lambda layer
@@ -47,7 +46,7 @@ Resources:
         SecGroupId: !Ref LambdaSecGroupId
         SubnetIds: !Join [',', [!Ref SubnetIdFirst, !Ref SubnetIdSecond]]
         LambdaHandler: create_config_file.lambda_handler
-        LambdaLayerArns: !Join[',' [!Ref LambdaLayerArn]]
+        LambdaLayerArns: !Join [',' , [!Ref LambdaLayerArn]]
 
   OnCreateStack:
     Type: "Custom::OnCreateStack"
@@ -55,8 +54,9 @@ Resources:
       ServiceToken: !GetAtt OnCreateLambda.Outputs.LambdaArn
       WEB_SERVER_ENV:
         spring.active: hello
-      CONFIG_FILE_KEY: "/config/web_server"
-      BUCKET_NAME: !Ref BucketUrl
+      CONFIG_FILE_KEY: "config/web_server/application.properties"
+      BUCKET_NAME: !Ref OnCreateStackBucketName
+
 
   CfnBucketWritePolicy:
     Type: AWS::IAM::Policy

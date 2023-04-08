@@ -69,10 +69,11 @@ def create(event, context):
 
 @helper.update
 def update(event, context):
+    print("============================ Update ================================")
     #for creating config file
     print("event: " ,end= " ")
     print(event)
-    
+
     properties = event.get('ResourceProperties', {})
     
     #for creating config file
@@ -100,7 +101,7 @@ def update(event, context):
     # as outputs in your resource in CloudFormation
     helper.Data.update({"successMsg": "Success!"})
     
-    print("Got Update")
+    
     return "MyNewResourceId"
 
 

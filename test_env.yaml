@@ -45,6 +45,12 @@ Parameters:
     Description: CodePipeline bucket for cicd
     Type: String
     Default: codepipeline-ap-northeast-2-90936547683
+  
+  LambdaLayerKey:
+    Description: key for lambda layer zip file
+    Type: String
+    Default: "non-cfn/lambda_layer/python.zip"
+
 
 Resources: 
   VPC:
@@ -211,7 +217,18 @@ Resources:
       VpcId: !Ref VPC
       
   #------------------------- custom resources -----------------------------------
-  OnCreateLambda:
+  LambdaLayer:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/layer.yaml']]  #specify lambda template
+      Parameters:
+        LayerBucketName: !Ref OnCreateStackBucketName
+        LayerS3Key: !Ref LambdaLayerKey
+        
+  InitDBLambda:
     Type: 'AWS::CloudFormation::Stack'
     Properties:
       Tags:
@@ -221,15 +238,15 @@ Resources:
       Parameters:
         CodeBucketName: !Ref OnCreateStackBucketName
         CodeKey: 'non-cfn/on_create_stack/on_create_stack.py.zip'
-        LayerKey: 'non-cfn/on_create_stack/python.zip'
+        LambdaLayerArns: !Join [ ',', [!GetAtt LambdaLayer.Outputs.LambdaLayerArn ]]
         SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
         SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
         LambdaHandler: init_db.lambda_handler
 
-  OnCreateStack:
+  InitDBCR:
     Type: "Custom::OnCreateStack"
     Properties:
-      ServiceToken: !GetAtt OnCreateLambda.Outputs.LambdaArn
+      ServiceToken: !GetAtt InitDBLambda.Outputs.LambdaArn
       DB_ENDPOINT: !GetAtt Database.Outputs.DBEndpoint
       BUCKET_NAME: !Ref OnCreateStackBucketName
       DDL_KEY: 'non-cfn/database/ddl.sql'
