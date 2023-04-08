@@ -20,26 +20,6 @@ def lambda_handler(event, context):
         'body': json.dumps('success')
     }
 
-def getDDL(S3Bucket, ddlKey):
-    s3 = boto3.resource('s3')
-    obj = s3.Object(S3Bucket, ddlKey)
-    ddl = obj.get()['Body'].read().decode('utf-8')
-    
-    return ddl
-
-def getDML(S3Bucket, dmlKey):
-    s3 = boto3.resource('s3')
-    obj = s3.Object(S3Bucket, dmlKey)
-    dml = obj.get()['Body'].read().decode('utf-8')
-    
-    return dml
-    
-def executeStatements(cursor, sqlList):
-    cursor.execute("START TRANSACTION;")
-    for sql in sqlList:
-        cursor.execute(sql);
-    cursor.execute("COMMIT;")
-    
 def createConfigFile(S3Bucket, fileKey, configMap):
     s3 = boto3.resource('s3')
     obj = s3.Object(S3Bucket, fileKey)
@@ -60,35 +40,22 @@ def create(event, context):
     
     properties = event.get('ResourceProperties', {})
     
-    dbEndpoint = properties.get('DB_ENDPOINT')
-    user = properties.get('USER')
-    password = properties.get('PASSWORD')
-    S3Bucket = properties.get('BUCKET_NAME')
-    ddlKey = properties.get('DDL_KEY')
-    dmlKey = properties.get('DML_KEY')
-    
     #for creating config file
     configFileKey = properties.get("CONFIG_FILE_KEY")
     configMap = properties.get("WEB_SERVER_ENV")
+    S3Bucket = properties.get("BUCKET_NAME") #name of bucket to put file
     
+    print("configMap: " , end= " ")
     print(configMap)
     print(type(configMap))
+    print("bucket name: ", end = " ")
+    print(S3Bucket)
     
     
     try:
-        connection = pymysql.connect(host = dbEndpoint, port = 3306, user=user, passwd=password, charset = 'utf8')
-        cursor = connection.cursor()
-        ddlList = sqlparse.split(getDDL(S3Bucket, ddlKey))
-        dmlList = sqlparse.split(getDML(S3Bucket, dmlKey))
-        
-        print("ddlList")
-        print(ddlList)
-        print("dmlList")
-        print(dmlList)
-        
-        executeStatements(cursor, ddlList)
-        executeStatements(cursor, dmlList)
-        
+        response = createConfigFile(S3Bucket, configFileKey, configMap)
+        print("response: ", end= " ")
+        print(response)
     except Exception as e:
         print(e)
         helper.Data.update({"errorMsg": str(e)})
@@ -103,12 +70,35 @@ def create(event, context):
 @helper.update
 def update(event, context):
     #for creating config file
+    print("event: " ,end= " ")
+    print(event)
+    
+    properties = event.get('ResourceProperties', {})
+    
+    #for creating config file
     configFileKey = properties.get("CONFIG_FILE_KEY")
     configMap = properties.get("WEB_SERVER_ENV")
+    S3Bucket = properties.get("BUCKET_NAME") #name of bucket to put file
     
+    print("configMap: " , end= " ")
     print(configMap)
     print(type(configMap))
+    print("bucket name: ", end = " ")
+    print(S3Bucket)
     
+    
+    try:
+        response = createConfigFile(S3Bucket, configFileKey, configMap)
+        print("response: ", end= " ")
+        print(response)
+    except Exception as e:
+        print(e)
+        helper.Data.update({"errorMsg": str(e)})
+        
+    
+    # Items stored in helper.Data will be saved
+    # as outputs in your resource in CloudFormation
+    helper.Data.update({"successMsg": "Success!"})
     
     print("Got Update")
     return "MyNewResourceId"

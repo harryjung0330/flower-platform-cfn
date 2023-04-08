@@ -217,14 +217,14 @@ Resources:
       Tags:
       - Key: Stage
         Value: test
-      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/on_create_stack.yaml']]
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/init_db.yaml']]
       Parameters:
         CodeBucketName: !Ref OnCreateStackBucketName
-        ResourceBucketName: !Ref OnCreateStackBucketName
         CodeKey: 'non-cfn/on_create_stack/on_create_stack.py.zip'
         LayerKey: 'non-cfn/on_create_stack/python.zip'
         SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
         SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
+        LambdaHandler: init_db.lambda_handler
 
   OnCreateStack:
     Type: "Custom::OnCreateStack"
@@ -236,3 +236,25 @@ Resources:
       DML_KEY: 'non-cfn/database/dml.sql'
       USER: !Ref DBMasterUserName
       PASSWORD: !Ref DBMasterPassword
+
+  
+  #----------------------------------- iam ----------------------------------------------------------
+
+  CfnBucketReadPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect : "Allow"
+          Action: 
+            - s3:GetObject
+          Resource: 
+          - !Sub
+            - "arn:aws:s3:::${ResourceBucketName}/*"
+            - ResourceBucketName: !Ref OnCreateStackBucketName
+      PolicyName: String
+      Roles: 
+        - !GetAtt OnCreateLambda.Outputs.LambdaRoleName
+  
+    

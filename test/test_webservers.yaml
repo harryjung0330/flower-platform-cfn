@@ -16,6 +16,7 @@ Parameters:
     Description: WebServer ami
     Type: String
     Default: ami-01667ac50214d9322
+  
 
 
 Resources: 

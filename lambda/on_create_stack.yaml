@@ -7,19 +7,18 @@ Parameters:
   CodeKey:
     Type: String
     Description: object key for the code
-  LayerKey:
-    Type: String
-    Description: object key for layer
-  ResourceBucketName:
-    Type: String
-    Description: bucketname where resources are located
+  
   SecGroupId:
     Type: String
     Description: Security group for lambda
   SubnetIds:
     Type: List<String>
     Description: subnet ids for lambda 
+  LambdaHandler:
+    Type: String
+    Description: Handler for lambda
   
+
   #optional parameters
   Timeout:
     Type: Number
@@ -29,24 +28,15 @@ Parameters:
     Type: String
     Description: Runtime for lambda
     Default: python3.7
-  LambdaHandler:
-    Type: String
-    Description: Handler for lambda
-    Default: on_create_stack.lambda_handler
+  LambdaLayerArns:
+    Type: List<String>
+    Description: layers for lambda if they are created already
+    Default: ""
+
+Conditions:
+  isLambdaLayerArnsEmpty: !Equals [!Ref LambdaLayerArns, ""]
 
 Resources:
-  
-  LambdaLayer:
-    Type: AWS::Lambda::LayerVersion
-    Properties:
-      LayerName: !Sub ${AWS::StackName}-on-create-lambda-layer
-      Description: Layer for all lambdas
-      CompatibleRuntimes: 
-        - python3.7
-        - python3.8
-      Content: 
-        S3Bucket: !Ref CodeBucketName
-        S3Key: !Ref LayerKey
   
   Function:
     Type: AWS::Lambda::Function
@@ -55,8 +45,7 @@ Resources:
       Role: !GetAtt LambdaRole.Arn
       Handler: !Ref LambdaHandler   
       Timeout: !Ref Timeout
-      Layers:
-       - !Ref LambdaLayer
+      Layers: If [IsLambdaLayerArnsEmpty, !Ref AWS::NoValue, !Ref LambdaLayerArns]
       VpcConfig:
         SecurityGroupIds: 
          - !Ref SecGroupId
@@ -83,18 +72,6 @@ Resources:
       ManagedPolicyArns:
         - !Ref LambdaNetworkPolicy
         - !Ref CloudwatchExPolicy
-      Policies:
-      - PolicyName: !Sub ${AWS::StackName}-resource-bucket-access-policy
-        PolicyDocument:
-          Version: "2012-10-17"
-          Statement:
-          - Effect : "Allow"
-            Action: 
-              - s3:GetObject
-            Resource: 
-            - !Sub
-              - "arn:aws:s3:::${ResourceBucketName}/*"
-              - ResourceBucketName: !Ref ResourceBucketName
  
   
   CloudwatchExPolicy:
@@ -130,3 +107,7 @@ Outputs:
   LambdaArn:
     Description: arn for lambda
     Value: !GetAtt Function.Arn
+  
+  LambdaRoleName:
+    Description: role name for lambda
+    Value: !Ref LambdaRole

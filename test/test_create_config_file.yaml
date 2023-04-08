@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description:
+Metadata: 
+
+Parameters:
+  BucketUrl:
+    Type: String
+    Description: bucket where lambda template and lambda file is stored!
+    Default: "https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/"
+  
+  OnCreateStackBucketName:
+    Description: Bucket name where lambda code and other resources need by the lambda is located 
+    Type: String
+    Default: cloudformation-code-repo-flower-platform
+
+  SubnetIdFirst:
+    Description: subnet id for lambda
+    Type: String
+    Default: subnet-0fe02bf81578d41ed
+  
+  SubnetIdSecond:
+    Description: subnet id for lambda
+    Type: String
+    Default: subnet-018cd5388a2e28880
+  
+  LambdaSecGroupId:
+    Description: sec group for lambda
+    Type: String
+    Default: sg-000b18073d863b658
+  
+  LambdaLayerArn:
+    Description: layer for lambda layer
+    Type: String
+    Default: arn:aws:lambda:ap-northeast-2:024721397924:layer:test-env-OnCreateLambda-17YG4O2KZKTK2-on-create-lambda-layer:1
+
+Resources: 
+  OnCreateLambda:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/on_create_stack.yaml']]  #specify lambda template
+      Parameters:
+        CodeBucketName: !Ref OnCreateStackBucketName
+        CodeKey: 'non-cfn/on_create_stack/create_config_file.py.zip'
+        SecGroupId: !Ref LambdaSecGroupId
+        SubnetIds: !Join [',', [!Ref SubnetIdFirst, !Ref SubnetIdSecond]]
+        LambdaHandler: create_config_file.lambda_handler
+        LambdaLayerArns: !Join[',' [!Ref LambdaLayerArn]]
+
+  OnCreateStack:
+    Type: "Custom::OnCreateStack"
+    Properties:
+      ServiceToken: !GetAtt OnCreateLambda.Outputs.LambdaArn
+      WEB_SERVER_ENV:
+        spring.active: hello
+      CONFIG_FILE_KEY: "/config/web_server"
+      BUCKET_NAME: !Ref BucketUrl
+
+  CfnBucketWritePolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect : "Allow"
+          Action: 
+            - s3:PutObject
+          Resource: 
+          - !Sub
+            - "arn:aws:s3:::${ResourceBucketName}/*"
+            - ResourceBucketName: !Ref OnCreateStackBucketName
+      PolicyName: String
+      Roles: 
+        - !GetAtt OnCreateLambda.Outputs.LambdaRoleName
+
