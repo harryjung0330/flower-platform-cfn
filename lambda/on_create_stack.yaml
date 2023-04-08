@@ -34,7 +34,7 @@ Parameters:
     Default: ""
 
 Conditions:
-  isLambdaLayerArnsEmpty: !Equals [ !Join ['', !Ref LambdaLayerArns] , '']
+  IsLambdaLayerArnsEmpty: !Equals [ !Join ['', !Ref LambdaLayerArns] , '']
 
 Resources:
   Function:
