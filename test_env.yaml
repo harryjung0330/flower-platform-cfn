@@ -29,7 +29,7 @@ Parameters:
   WebServerAmi:
     Description: WebServer ami
     Type: String
-    Default: ami-01667ac50214d9322
+    Default: ami-0b0b7f41b949f742b
   
   DBMasterUserName:
     Description: MasterUserName for DB
