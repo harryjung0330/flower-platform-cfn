@@ -215,7 +215,40 @@ Resources:
       ServiceName: "com.amazonaws.ap-northeast-2.s3" 
       VpcEndpointType: Gateway
       VpcId: !Ref VPC
-      
+  
+  CodeDeployCommandInterfaceEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.codedeploy'
+      VpcId: !Ref VPC
+      SubnetIds: 
+        - !GetAtt WebServerSubnetFirst.Outputs.SubnetId
+        - !GetAtt WebServerSubnetSecond.Outputs.SubnetId
+      SecurityGroupIds:
+        - !Ref EndPointSecGroup
+  
+  CodeDeploySecureInterfaceEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.codedeploy-commands-secure'
+      VpcId: !Ref VPC
+      SubnetIds: 
+        - !GetAtt WebServerSubnetFirst.Outputs.SubnetId
+        - !GetAtt WebServerSubnetSecond.Outputs.SubnetId
+      SecurityGroupIds:
+        - !Ref EndPointSecGroup
+  
+  EndPointSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties: 
+      GroupDescription: Security group endpoint interface. allow all traffic
+      SecurityGroupIngress: 
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: -1
+      VpcId: !Ref VPC
+
   #------------------------- custom resources -----------------------------------
   LambdaLayer:
     Type: 'AWS::CloudFormation::Stack'
@@ -253,6 +286,7 @@ Resources:
       DML_KEY: 'non-cfn/database/dml.sql'
       USER: !Ref DBMasterUserName
       PASSWORD: !Ref DBMasterPassword
+    DependsOn: CfnBucketReadPolicy
 
   CreateConfigLambda:
     Type: 'AWS::CloudFormation::Stack'
@@ -270,13 +304,20 @@ Resources:
         LambdaLayerArns: !Join [ ',', [!GetAtt LambdaLayer.Outputs.LambdaLayerArn ]]
 
   CreateConfigCR:
-    Type: "Custom::OnCreateStack"
+    Type: "Custom::OnCreateStack" 
     Properties:
       ServiceToken: !GetAtt CreateConfigLambda.Outputs.LambdaArn
       WEB_SERVER_ENV:
-        spring.active: hello
+        spring.datasource.url: !Sub 
+          - "jdbc:mysql://${DB_ENDPOINT}:3306/flower_platform"
+          - DB_ENDPOINT: !GetAtt Database.Outputs.DBEndpoint
+        spring.datasource.username: !Ref DBMasterUserName
+        spring.datasource.password: !Ref DBMasterPassword
+        jwt.token.secretKey.primary: helloWorld
+        jwt.token.secretKey.secondary: secondary
       CONFIG_FILE_KEY: "config/web_server/application.properties"
       BUCKET_NAME: !Ref OnCreateStackBucketName
+    DependsOn: CfnBucketWritePolicy
   
   #----------------------------------- iam ----------------------------------------------------------
 

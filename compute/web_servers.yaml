@@ -97,17 +97,19 @@ Resources:
       Priority: 1
   
   TargetGroup:
-    UpdateReplacePolicy: Retain
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
     Properties:
       Port: 80
       Protocol: HTTP
       VpcId: !Ref VPC
       HealthCheckEnabled: true
-      HealthCheckIntervalSeconds: 20
+      HealthCheckIntervalSeconds: 10
+      HealthyThresholdCount: 3
       HealthCheckPath: !Ref HealthCheckPath
       HealthCheckPort: 80
       HealthCheckProtocol: HTTP
+      UnhealthyThresholdCount: 2
+      HealthCheckTimeoutSeconds: 3
 
     
   LaunchTemplate:
