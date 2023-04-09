@@ -289,37 +289,6 @@ Resources:
       USER: !Ref DBMasterUserName
       PASSWORD: !Ref DBMasterPassword
     DependsOn: CfnBucketReadPolicy
-
-  CreateConfigLambda:
-    Type: 'AWS::CloudFormation::Stack'
-    Properties:
-      Tags:
-      - Key: Stage
-        Value: test
-      TemplateURL: !Join ['', [!Ref BucketUrl, 'lambda/on_create_stack.yaml']]  #specify lambda template
-      Parameters:
-        CodeBucketName: !Ref OnCreateStackBucketName
-        CodeKey: 'non-cfn/on_create_stack/create_config_file.py.zip'
-        SecGroupId: !GetAtt WebServers.Outputs.WebServerSecGroupId
-        SubnetIds: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
-        LambdaHandler: create_config_file.lambda_handler
-        LambdaLayerArns: !Join [ ',', [!GetAtt LambdaLayer.Outputs.LambdaLayerArn ]]
-
-  CreateConfigCR:
-    Type: "Custom::OnCreateStack" 
-    Properties:
-      ServiceToken: !GetAtt CreateConfigLambda.Outputs.LambdaArn
-      WEB_SERVER_ENV:
-        spring.datasource.url: !Sub 
-          - "jdbc:mysql://${DB_ENDPOINT}:3306/flower_platform"
-          - DB_ENDPOINT: !GetAtt Database.Outputs.DBEndpoint
-        spring.datasource.username: !Ref DBMasterUserName
-        spring.datasource.password: !Ref DBMasterPassword
-        jwt.token.secretKey.primary: helloWorld
-        jwt.token.secretKey.secondary: secondary
-      CONFIG_FILE_KEY: "config/web_server/application.properties"
-      BUCKET_NAME: !Ref OnCreateStackBucketName
-    DependsOn: CfnBucketWritePolicy
   
   #----------------------------------- iam ----------------------------------------------------------
 
@@ -339,23 +308,6 @@ Resources:
       PolicyName: test-env-read-resource-bucket
       Roles: 
         - !GetAtt InitDBLambda.Outputs.LambdaRoleName
-
-  CfnBucketWritePolicy:
-    Type: AWS::IAM::Policy
-    Properties: 
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-        - Effect : "Allow"
-          Action: 
-            - s3:PutObject
-          Resource: 
-          - !Sub
-            - "arn:aws:s3:::${ResourceBucketName}/*"
-            - ResourceBucketName: !Ref OnCreateStackBucketName
-      PolicyName: test-env-write-resource-bucket
-      Roles: 
-        - !GetAtt CreateConfigLambda.Outputs.LambdaRoleName
   
   CodeDeployVPCPolicy:
     Type: AWS::IAM::Policy
