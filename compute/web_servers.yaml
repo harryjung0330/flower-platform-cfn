@@ -238,3 +238,7 @@ Outputs:
   TargetGroupArn:
     Description: Target group for web servers
     Value: !GetAtt TargetGroup.TargetGroupArn
+  
+  WebServerRoleName:
+    Description: Role name for web servers
+    Value: !Ref Ec2InstanceRole

@@ -222,6 +222,7 @@ Resources:
       VpcEndpointType: Interface
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.codedeploy'
       VpcId: !Ref VPC
+      PrivateDnsEnabled: true
       SubnetIds: 
         - !GetAtt WebServerSubnetFirst.Outputs.SubnetId
         - !GetAtt WebServerSubnetSecond.Outputs.SubnetId
@@ -234,6 +235,7 @@ Resources:
       VpcEndpointType: Interface
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.codedeploy-commands-secure'
       VpcId: !Ref VPC
+      PrivateDnsEnabled: true
       SubnetIds: 
         - !GetAtt WebServerSubnetFirst.Outputs.SubnetId
         - !GetAtt WebServerSubnetSecond.Outputs.SubnetId
@@ -354,5 +356,23 @@ Resources:
       PolicyName: test-env-write-resource-bucket
       Roles: 
         - !GetAtt CreateConfigLambda.Outputs.LambdaRoleName
+  
+  CodeDeployVPCPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect : "Allow"
+          Action: 
+            - codedeploy-commands-secure:GetDeploymentSpecification
+            - codedeploy-commands-secure:PollHostCommand
+            - codedeploy-commands-secure:PutHostCommandAcknowledgement
+            - codedeploy-commands-secure:PutHostCommandComplete
+          Resource: 
+            - '*'
+      PolicyName: test-env-codedeploy-policy
+      Roles: 
+        - !GetAtt WebServers.Outputs.WebServerRoleName
   
     
