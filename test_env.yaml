@@ -50,6 +50,8 @@ Parameters:
     Description: key for lambda layer zip file
     Type: String
     Default: "non-cfn/lambda_layer/python.zip"
+  
+
 
 
 Resources: 
@@ -327,6 +329,29 @@ Resources:
       Roles: 
         - !GetAtt WebServers.Outputs.WebServerRoleName
   
+  GetTestEnvSSMParameterPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: test-env-final-GetTestEnvSSMParameter-policy
+      Roles:
+        - !GetAtt WebServers.Outputs.WebServerRoleName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - ssm:GetParametersByPath
+              - ssm:GetParameters
+              - ssm:GetParameter
+            Resource: 
+              - !Sub
+                - "arn:aws:ssm:${Region}/${AccountId}:parameter/test/*"
+                - Region: !Ref AWS::Region 
+                - AccountId: !Ref AWS::AccountId
+              - !Sub
+                - "arn:aws:s3:::${SourceBucket}/*"
+                - SourceBucket: !Ref CicdSourceBucketName
+
   CloudwatchConfigParameter:
     Type: AWS::SSM::Parameter
     Properties:
@@ -353,6 +378,7 @@ Resources:
             }
           },
           "metrics": {
+            "namespace": "WebServersTestEnv",
             "aggregation_dimensions": [
               [
                 "InstanceId"
