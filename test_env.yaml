@@ -327,6 +327,74 @@ Resources:
       Roles: 
         - !GetAtt WebServers.Outputs.WebServerRoleName
   
+  CloudwatchConfigParameter:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Name: /test/web-server/config/cloudwatch-config.json
+      Type: String
+      Value: |
+        {
+          "agent": {
+            "metrics_collection_interval": 60,
+            "run_as_user": "root"
+          },
+          "logs": {
+            "logs_collected": {
+              "files": {
+                "collect_list": [
+                  {
+                    "file_path": "/home/ec2-user/server.log",
+                    "log_group_name": "server.log",
+                    "log_stream_name": "{instance_id}",
+                    "retention_in_days": -1
+                  }
+                ]
+              }
+            }
+          },
+          "metrics": {
+            "aggregation_dimensions": [
+              [
+                "InstanceId"
+              ]
+            ],
+            "append_dimensions": {
+              "AutoScalingGroupName": "${aws:AutoScalingGroupName}",
+              "ImageId": "${aws:ImageId}",
+              "InstanceId": "${aws:InstanceId}",
+              "InstanceType": "${aws:InstanceType}"
+            },
+            "metrics_collected": {
+              "collectd": {
+                "metrics_aggregation_interval": 60
+              },
+              "disk": {
+                "measurement": [
+                  "used_percent"
+                ],
+                "metrics_collection_interval": 60,
+                "resources": [
+                  "*"
+                ]
+              },
+              "mem": {
+                "measurement": [
+                  "mem_used_percent"
+                ],
+                "metrics_collection_interval": 60
+              },
+              "statsd": {
+                "metrics_aggregation_interval": 60,
+                "metrics_collection_interval": 10,
+                "service_address": ":8125"
+              }
+            }
+          }
+        }
+      Description: config file for cloudwatch agent
+      Tags:
+        Environment: TEST
+  
 Outputs:
   RdsDbEndpoint:
     Description: DB endpoint for RDS

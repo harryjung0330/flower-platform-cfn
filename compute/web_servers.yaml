@@ -139,6 +139,7 @@ Resources:
       RoleName: !Sub ${AWS::StackName}-webservers
       ManagedPolicyArns:
         - !Ref EC2CodeDeployAccessPolicy
+        - !Ref EC2GetSSMParameter
         - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       AssumeRolePolicyDocument:
         Version: 2012-10-17
@@ -167,6 +168,27 @@ Resources:
               - !Sub
                 - "arn:aws:s3:::${Region}/*"
                 - Region: !Ref Region 
+              - !Sub
+                - "arn:aws:s3:::${SourceBucket}/*"
+                - SourceBucket: !Ref CicdSourceBucketName
+  
+  EC2GetSSMParameter:
+    Type: "AWS::IAM::ManagedPolicy"
+    Properties:
+      ManagedPolicyName: !Sub ${AWS::StackName}-webservers-SSMParameters
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - ssm:GetParametersByPath
+              - ssm:GetParameters
+              - ssm:GetParameter
+            Resource: 
+              - !Sub
+                - "arn:aws:ssm:${Region}/${AccountId}:parameter/test/web-server/*"
+                - Region: !Ref Region 
+                - AccountId: !Ref AWS::AccountId
               - !Sub
                 - "arn:aws:s3:::${SourceBucket}/*"
                 - SourceBucket: !Ref CicdSourceBucketName
