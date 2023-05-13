@@ -29,7 +29,7 @@ Parameters:
   WebServerAmi:
     Description: WebServer ami
     Type: String
-    Default: ami-0b0b7f41b949f742b
+    Default: ami-0ddb4a2e8154b2bd4
   
   DBMasterUserName:
     Description: MasterUserName for DB
@@ -187,7 +187,9 @@ Resources:
         AmiId: !Ref WebServerAmi
         HealthCheckPath: /actuator/health
         CicdSourceBucketName: !Ref CodePipelineBucket
-  
+        MetricNameSpace: WebServersTestEnv
+        MetricName: mem_used_percent
+        MetricTarget: '70'
 
   #------------------------------ database ----------------------------------------------
   Database:
@@ -344,13 +346,10 @@ Resources:
               - ssm:GetParameters
               - ssm:GetParameter
             Resource: 
-              - !Sub
-                - "arn:aws:ssm:${Region}/${AccountId}:parameter/test/*"
-                - Region: !Ref AWS::Region 
-                - AccountId: !Ref AWS::AccountId
-              - !Sub
-                - "arn:aws:s3:::${SourceBucket}/*"
-                - SourceBucket: !Ref CicdSourceBucketName
+              - !Sub 
+                - "arn:aws:ssm:${Region}:${AccountId}:parameter/test/*"
+                - Region: !Ref AWS::Region
+                  AccountId: !Ref AWS::AccountId 
 
   CloudwatchConfigParameter:
     Type: AWS::SSM::Parameter

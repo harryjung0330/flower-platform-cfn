@@ -54,11 +54,24 @@ Parameters:
     Type: String
     Description: region for web servers
     Default: ap-northeast-2
+  MetricNameSpace:
+    Type: String
+    Description: Namespace for cloudwatch metric
+    Default: ''
+  MetricName:
+    Type: String
+    Description: Metric name to use for autoscaling
+    Default: ''
+  MetricTarget:
+    Type: String
+    Description: target for the metric to aim. We use average as default
+    Default: '100'
 
 Conditions:
   IsRoleNameEmpty: !Equals [ !Ref RoleName, '' ]
   IsUsingCodePipeline: !Not [!Equals [!Ref CicdSourceBucketName, ''] ]
- 
+  IsUsingCustomMetric: !Not [!Equals [!Ref MetricName, ''] ]
+
 Resources:
   LoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -219,6 +232,19 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
         TargetValue: !Ref CPUPolicyTargetValue
+  
+  OtherMetricScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Condition: IsUsingCustomMetric
+    Properties:
+      AutoScalingGroupName: !Ref ASG
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        CustomizedMetricSpecification:
+          MetricName: !Ref MetricName
+          Namespace: !Ref MetricNameSpace
+          Statistic: Average
+        TargetValue: !Ref MetricTarget
 
 Outputs:
   LoadBalancerArn:
