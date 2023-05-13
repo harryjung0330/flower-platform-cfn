@@ -31,3 +31,5 @@ INSERT INTO flower_pictures(flower_id, pict_url) VALUES
 (@last_id, 'https://flower-platfrom-pictures-test.s3.ap-northeast-2.amazonaws.com/%EC%9E%A5%EB%AF%B8/rose-4218753__480.jpg' );
 
 INSERT INTO authentication_providers(provider) values('GOOGLE'), ('APPLE'), ('INTERNAL');
+
+

@@ -61,7 +61,6 @@ Conditions:
  
 Resources:
   LoadBalancer:
-    UpdateReplacePolicy: Retain
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Subnets: !Ref LoadBalancerSubnets
@@ -140,6 +139,7 @@ Resources:
       RoleName: !Sub ${AWS::StackName}-webservers
       ManagedPolicyArns:
         - !Ref EC2CodeDeployAccessPolicy
+        - arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
@@ -170,6 +170,7 @@ Resources:
               - !Sub
                 - "arn:aws:s3:::${SourceBucket}/*"
                 - SourceBucket: !Ref CicdSourceBucketName
+
       
   LoadBalancerSecGroup:
     Type: AWS::EC2::SecurityGroup
@@ -183,7 +184,6 @@ Resources:
       VpcId: !Ref VPC
 
   WebServerSecGroup:
-    UpdateReplacePolicy: Retain
     Type: AWS::EC2::SecurityGroup
     Properties: 
       GroupDescription: Security group for web servers
@@ -199,7 +199,6 @@ Resources:
       VpcId: !Ref VPC
 
   ASG:
-    UpdateReplacePolicy: Retain
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       LaunchTemplate:

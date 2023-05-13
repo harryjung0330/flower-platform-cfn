@@ -305,7 +305,7 @@ Resources:
           - !Sub
             - "arn:aws:s3:::${ResourceBucketName}/*"
             - ResourceBucketName: !Ref OnCreateStackBucketName
-      PolicyName: test-env-read-resource-bucket
+      PolicyName: test-env-final-read-resource-bucket
       Roles: 
         - !GetAtt InitDBLambda.Outputs.LambdaRoleName
   
@@ -323,8 +323,13 @@ Resources:
             - codedeploy-commands-secure:PutHostCommandComplete
           Resource: 
             - '*'
-      PolicyName: test-env-codedeploy-policy
+      PolicyName: test-env-final-codedeploy-policy
       Roles: 
         - !GetAtt WebServers.Outputs.WebServerRoleName
   
-    
+Outputs:
+  RdsDbEndpoint:
+    Description: DB endpoint for RDS
+    Value: !GetAtt Database.Outputs.DBEndpoint
+    Export:
+      Name: TestEnvFinalDbEndpoint
