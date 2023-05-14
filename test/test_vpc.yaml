@@ -1,5 +1,56 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: test vpc
+Parameters:
+  AZ:
+    Description: AZ to use
+    Type: List<String>
+    Default: "ap-northeast-2a, ap-northeast-2c"
+  
+  BucketUrl:
+    Description: it is a bucket template Url.
+    Type: String
+    Default: "https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/"
+  
+  OnCreateStackBucketName:
+    Description: Bucket name where lambda code and other resources need by the lambda is located 
+    Type: String
+    Default: cloudformation-code-repo-flower-platform
+
+  BastionKeyPairName:
+    Description: key pair name for bastion server
+    Type: String
+    Default: bastion-server-key-pair
+  
+  WebServerKeyPairName:
+    Description: key pair name for web servers
+    Type: String
+    Default: spring-web-server
+
+  WebServerAmi:
+    Description: WebServer ami
+    Type: String
+    Default: ami-0ddb4a2e8154b2bd4
+  
+  DBMasterUserName:
+    Description: MasterUserName for DB
+    Type: String
+    Default: admin
+  
+  DBMasterPassword:
+    Description: MasterPassword for DB
+    Type: String
+    Default: helloWorld!
+
+  CodePipelineBucket:
+    Description: CodePipeline bucket for cicd
+    Type: String
+    Default: codepipeline-ap-northeast-2-90936547683
+  
+  LambdaLayerKey:
+    Description: key for lambda layer zip file
+    Type: String
+    Default: "non-cfn/lambda_layer/python.zip"
+
 Resources: 
   VPC:
     Type: "AWS::EC2::VPC"
@@ -41,11 +92,24 @@ Resources:
         AZ: !Select [ 0, !Ref AZ]
         CidrBlock: 10.0.0.0/24
   
+  PublicSubnetSecond:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/public_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        IgId: !GetAtt InternetGateway.InternetGatewayId
+        AZ: !Select [ 1, !Ref AZ]
+        CidrBlock: 10.0.1.0/24
+  
   NATGateway:
    Type: AWS::EC2::NatGateway
    Properties:
       AllocationId: !GetAtt NATGatewayEIP.AllocationId
-      SubnetId: !Ref PublicSubnetFirst
+      SubnetId: !GetAtt PublicSubnetFirst.Outputs.SubnetId
       Tags:
       - Key: stack
         Value: production
@@ -54,15 +118,6 @@ Resources:
     Type: AWS::EC2::EIP
     Properties:
         Domain: vpc
-        
-  RouteNATGateway:
-    DependsOn: NATGateway
-    Type: AWS::EC2::Route
-    Properties:
-        RouteTableId: !Ref PrivateRouteTable
-        DestinationCidrBlock: '0.0.0.0/0'
-        NatGatewayId: !Ref NATGateway
-
 
   WebServerSubnetFirst:
     Type: 'AWS::CloudFormation::Stack'
@@ -75,7 +130,90 @@ Resources:
         VpcId: !Ref VPC
         AZ: !Select [ 0, !Ref AZ]
         CidrBlock: 10.0.2.0/24
+        NatGatewayId: !Ref NATGateway
+
+  WebServerSubnetSecond:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        AZ: !Select [ 1, !Ref AZ]
+        CidrBlock: 10.0.3.0/24
+        NatGatewayId: !Ref NATGateway
   
+  #create bastion server
+  BastionServer:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'compute/bastion_server.yaml']]
+      Parameters:
+        SubnetId: !GetAtt PublicSubnetFirst.Outputs.SubnetId
+        VpcId: !Ref VPC
+        KeypairName: !Ref BastionKeyPairName
   
+  WebServers:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'compute/web_servers.yaml']]
+      Parameters:
+        LoadBalancerSubnets: !Join [',', [!GetAtt PublicSubnetFirst.Outputs.SubnetId, !GetAtt PublicSubnetSecond.Outputs.SubnetId]]
+        VPC: !Ref VPC
+        WebServerSubnets: !Join [',', [!GetAtt WebServerSubnetFirst.Outputs.SubnetId, !GetAtt WebServerSubnetSecond.Outputs.SubnetId]]
+        SSHKeyName: !Ref WebServerKeyPairName
+        BastionServerSecurityGroup: !GetAtt BastionServer.Outputs.SecurityGroupId
+        AmiId: !Ref WebServerAmi
+        HealthCheckPath: /actuator/health
+        CicdSourceBucketName: !Ref CodePipelineBucket
+        MetricNameSpace: WebServersTestEnv
+        MetricName: mem_used_percent
+        MetricTarget: '70'
+  
+  CodeDeployVPCPolicy:
+    Type: AWS::IAM::Policy
+    Properties: 
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect : "Allow"
+          Action: 
+            - codedeploy-commands-secure:GetDeploymentSpecification
+            - codedeploy-commands-secure:PollHostCommand
+            - codedeploy-commands-secure:PutHostCommandAcknowledgement
+            - codedeploy-commands-secure:PutHostCommandComplete
+          Resource: 
+            - '*'
+      PolicyName: test-vpc-codedeploy-policy
+      Roles: 
+        - !GetAtt WebServers.Outputs.WebServerRoleName
+  
+  GetTestEnvSSMParameterPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: test-vpc-GetTestEnvSSMParameter-policy
+      Roles:
+        - !GetAtt WebServers.Outputs.WebServerRoleName
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: "Allow"
+            Action:
+              - ssm:GetParametersByPath
+              - ssm:GetParameters
+              - ssm:GetParameter
+            Resource: 
+              - !Sub 
+                - "arn:aws:ssm:${Region}:${AccountId}:parameter/test/*"
+                - Region: !Ref AWS::Region
+                  AccountId: !Ref AWS::AccountId 
   
   

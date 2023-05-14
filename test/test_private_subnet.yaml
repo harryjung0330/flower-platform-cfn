@@ -1,5 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: test vpc
+Parameters:
+  AZ:
+    Description: AZ to use
+    Type: List<String>
+    Default: "ap-northeast-2a, ap-northeast-2c"
+  
+  BucketUrl:
+    Description: it is a bucket template Url.
+    Type: String
+    Default: "https://cloudformation-code-repo-flower-platform.s3.ap-northeast-2.amazonaws.com/"
+
 Resources: 
   VPC:
     Type: "AWS::EC2::VPC"
@@ -12,7 +23,6 @@ Resources:
       - Key: Description
         Value: it is a VPC for test stage
   
-
   VPCGatewayAttachment:
     Type: "AWS::EC2::VPCGatewayAttachment"
     Properties: 
@@ -46,7 +56,7 @@ Resources:
    Type: AWS::EC2::NatGateway
    Properties:
       AllocationId: !GetAtt NATGatewayEIP.AllocationId
-      SubnetId: !Ref PublicSubnetFirst
+      SubnetId: !GetAtt PublicSubnetFirst.Outputs.SubnetId
       Tags:
       - Key: stack
         Value: production

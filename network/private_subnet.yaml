@@ -24,7 +24,7 @@ Parameters:
     Default: ''
 
 Conditions:
-  IsNatGatewayEmpty: !Equals [ !Ref NatGatewayId, '' ]
+  IsNatGatewayNotEmpty: !Not [!Equals [ !Ref NatGatewayId, '' ] ]
 
 Resources: 
   #---------- private subnet for vpc endpoint ------------
@@ -47,7 +47,7 @@ Resources:
       RouteTableId: !Ref RouteTableForPrivateSubnet
   
   RouteNATGateway:
-    Condition: IsNatGatewayEmpty
+    Condition: IsNatGatewayNotEmpty
     Type: AWS::EC2::Route
     Properties:
         RouteTableId: !Ref RouteTableForPrivateSubnet
