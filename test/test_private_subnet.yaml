@@ -1,0 +1,72 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: test vpc
+Resources: 
+  VPC:
+    Type: "AWS::EC2::VPC"
+    Properties:
+      CidrBlock: '10.0.0.0/16'
+      EnableDnsHostnames: true
+      Tags:
+      - Key: Stage
+        Value: test
+      - Key: Description
+        Value: it is a VPC for test stage
+  
+
+  VPCGatewayAttachment:
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties: 
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      - Key: Description
+        Value: it is a route table for test stage
+    DependsOn: VPC
+
+  PublicSubnetFirst:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/public_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        IgId: !GetAtt InternetGateway.InternetGatewayId
+        AZ: !Select [ 0, !Ref AZ]
+        CidrBlock: 10.0.0.0/24
+  
+  NATGateway:
+   Type: AWS::EC2::NatGateway
+   Properties:
+      AllocationId: !GetAtt NATGatewayEIP.AllocationId
+      SubnetId: !Ref PublicSubnetFirst
+      Tags:
+      - Key: stack
+        Value: production
+
+  NATGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+        Domain: vpc
+
+
+  WebServerSubnetFirst:
+    Type: 'AWS::CloudFormation::Stack'
+    Properties:
+      Tags:
+      - Key: Stage
+        Value: test
+      TemplateURL: !Join ['', [!Ref BucketUrl, 'network/private_subnet.yaml']]
+      Parameters:
+        VpcId: !Ref VPC
+        AZ: !Select [ 0, !Ref AZ]
+        CidrBlock: 10.0.2.0/24
+        NatGatewayId: !Ref NATGateway
+  

@@ -17,6 +17,14 @@ Parameters:
   CidrBlock:
     Description: CidrBlock for public subnet
     Type: String
+  
+  NatGatewayId:
+    Description: NAT gateway id to use
+    Type: String
+    Default: ''
+
+Conditions:
+  IsNatGatewayEmpty: !Equals [ !Ref NatGatewayId, '' ]
 
 Resources: 
   #---------- private subnet for vpc endpoint ------------
@@ -37,6 +45,14 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet
       RouteTableId: !Ref RouteTableForPrivateSubnet
+  
+  RouteNATGateway:
+    Condition: IsNatGatewayEmpty
+    Type: AWS::EC2::Route
+    Properties:
+        RouteTableId: !Ref RouteTableForPrivateSubnet
+        DestinationCidrBlock: '0.0.0.0/0'
+        NatGatewayId: !Ref NatGatewayId
 
 Outputs:
   SubnetId:
