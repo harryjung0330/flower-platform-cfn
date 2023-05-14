@@ -81,6 +81,20 @@ Resources:
     Properties: 
       VpcId: !Ref VPC
       InternetGatewayId: !Ref InternetGateway
+  
+  NATGateway:
+   Type: AWS::EC2::NatGateway
+   Properties:
+      AllocationId: !GetAtt NATGatewayEIP.AllocationId
+      SubnetId: !GetAtt PublicSubnetFirst.Outputs.SubnetId
+      Tags:
+      - Key: stack
+        Value: production
+
+  NATGatewayEIP:
+    Type: AWS::EC2::EIP
+    Properties:
+        Domain: vpc
 
   PublicSubnetFirst:
     Type: 'AWS::CloudFormation::Stack'
@@ -119,6 +133,7 @@ Resources:
         VpcId: !Ref VPC
         AZ: !Select [ 0, !Ref AZ]
         CidrBlock: 10.0.2.0/24
+        NatGatewayId: !Ref NATGateway
   
   WebServerSubnetSecond:
     Type: 'AWS::CloudFormation::Stack'
@@ -131,6 +146,7 @@ Resources:
         VpcId: !Ref VPC
         AZ: !Select [ 1, !Ref AZ]
         CidrBlock: 10.0.3.0/24
+        NatGatewayId: !Ref NATGateway
   
   DatabaseSubnetFirst:
     Type: 'AWS::CloudFormation::Stack'
@@ -143,6 +159,7 @@ Resources:
         VpcId: !Ref VPC
         AZ: !Select [ 0, !Ref AZ]
         CidrBlock: 10.0.4.0/24
+        NatGatewayId: !Ref NATGateway
 
   DatabaseSubnetSecond:
     Type: 'AWS::CloudFormation::Stack'
@@ -155,6 +172,7 @@ Resources:
         VpcId: !Ref VPC
         AZ: !Select [ 1, !Ref AZ]
         CidrBlock: 10.0.5.0/24
+        NatGatewayId: !Ref NATGateway
 
   #---------------------------------- compute resource-----------------------------
 
@@ -220,31 +238,6 @@ Resources:
       VpcEndpointType: Gateway
       VpcId: !Ref VPC
   
-  CodeDeployCommandInterfaceEndpoint:
-    Type: 'AWS::EC2::VPCEndpoint'
-    Properties:
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.codedeploy'
-      VpcId: !Ref VPC
-      PrivateDnsEnabled: true
-      SubnetIds: 
-        - !GetAtt WebServerSubnetFirst.Outputs.SubnetId
-        - !GetAtt WebServerSubnetSecond.Outputs.SubnetId
-      SecurityGroupIds:
-        - !Ref EndPointSecGroup
-  
-  CodeDeploySecureInterfaceEndpoint:
-    Type: 'AWS::EC2::VPCEndpoint'
-    Properties:
-      VpcEndpointType: Interface
-      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.codedeploy-commands-secure'
-      VpcId: !Ref VPC
-      PrivateDnsEnabled: true
-      SubnetIds: 
-        - !GetAtt WebServerSubnetFirst.Outputs.SubnetId
-        - !GetAtt WebServerSubnetSecond.Outputs.SubnetId
-      SecurityGroupIds:
-        - !Ref EndPointSecGroup
   
   EndPointSecGroup:
     Type: AWS::EC2::SecurityGroup

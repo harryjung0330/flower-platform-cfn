@@ -38,6 +38,10 @@ Parameters:
     Type: String
     Description: maximum number of ec2 instance
     Default: '4'
+  DesiredCap:
+    Type: String
+    Description: desired capacity of ec2 
+    Default: '1'
   WebServerInstanceType:
     Type: String
     Description: Ec2 instance type for webserver
@@ -213,11 +217,13 @@ Resources:
   ASG:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
+      NewInstancesProtectedFromScaleIn: false
       LaunchTemplate:
         LaunchTemplateId: !Ref LaunchTemplate
         Version: !GetAtt LaunchTemplate.LatestVersionNumber
       MaxSize: !Ref MaxCap
       MinSize: !Ref MinCap
+      DesiredCapacity: !Ref DesiredCap
       DefaultInstanceWarmup: 30
       VPCZoneIdentifier: !Ref WebServerSubnets
       TargetGroupARNs:
